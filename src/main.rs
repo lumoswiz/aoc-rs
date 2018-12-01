@@ -45,8 +45,8 @@ fn main() {
             .expect(&format!("failed to get input for {}", date));
         let result = match (year, day) {
             (2018, 1) => (
-                y2018::d01::run1(&input).to_string(),
-                y2018::d01::run2(&input).to_string(),
+                y2018::d01::problem1(&input).to_string(),
+                y2018::d01::problem2(&input).to_string(),
             ),
             _ => unimplemented!(),
         };

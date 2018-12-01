@@ -8,11 +8,11 @@ fn parse<'a>(input: &'a str) -> impl 'a + Iterator<Item = i64> {
         .map(|s| s.parse::<i64>().unwrap())
 }
 
-pub fn run1(input: &str) -> i64 {
+pub fn problem1(input: &str) -> i64 {
     parse(input).sum()
 }
 
-pub fn run2(input: &str) -> i64 {
+pub fn problem2(input: &str) -> i64 {
     let mut sum = 0;
     let mut numbers = HashSet::new();
 
@@ -28,18 +28,19 @@ pub fn run2(input: &str) -> i64 {
 }
 
 #[cfg(test)]
-#[test]
-fn test1() {
-    assert_eq!(run1("+1, +1, +1"), 3);
-    assert_eq!(run1("+1, +1, -2"), 0);
-    assert_eq!(run1("-1, -2, -3"), -6);
-}
+mod tests {
+    #[test]
+    fn problem1() {
+        assert_eq!(super::problem1("+1, +1, +1"), 3);
+        assert_eq!(super::problem1("+1, +1, -2"), 0);
+        assert_eq!(super::problem1("-1, -2, -3"), -6);
+    }
 
-#[cfg(test)]
-#[test]
-fn test2() {
-    assert_eq!(run2("+1, -1"), 0);
-    assert_eq!(run2("+3, +3, +4, -2, -4"), 10);
-    assert_eq!(run2("-6, +3, +8, +5, -6"), 5);
-    assert_eq!(run2("+7, +7, -2, -7, -4"), 14);
+    #[test]
+    fn problem2() {
+        assert_eq!(super::problem2("+1, -1"), 0);
+        assert_eq!(super::problem2("+3, +3, +4, -2, -4"), 10);
+        assert_eq!(super::problem2("-6, +3, +8, +5, -6"), 5);
+        assert_eq!(super::problem2("+7, +7, -2, -7, -4"), 14);
+    }
 }
