@@ -1,0 +1,10 @@
+[package]
+name = "aoc"
+version = "0.1.0"
+authors = ["Nicholas Lordello <nlordell@gmail.com>"]
+
+[dependencies]
+clap = "2"
+failure = "0.1"
+failure_derive = "0.1"
+native-tls = "0.2"
