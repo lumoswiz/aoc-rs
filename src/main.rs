@@ -48,6 +48,10 @@ fn main() {
                 y2018::d01::problem1(&input).to_string(),
                 y2018::d01::problem2(&input).to_string(),
             ),
+            (2018, 2) => (
+                y2018::d02::problem1(&input).to_string(),
+                y2018::d02::problem2(&input).to_string(),
+            ),
             _ => unimplemented!(),
         };
 
