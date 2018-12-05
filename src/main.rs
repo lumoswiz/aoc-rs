@@ -1,7 +1,9 @@
 extern crate clap;
 extern crate failure;
 extern crate failure_derive;
+extern crate lazy_static;
 extern crate native_tls;
+extern crate regex;
 
 mod client;
 mod y2018;
@@ -22,13 +24,15 @@ fn main() {
                 .value_name("YEAR")
                 .required(true)
                 .validator(validate::<i32>),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("days")
                 .value_name("DAY")
                 .required(true)
                 .multiple(true)
                 .validator(validate::<i32>),
-        ).get_matches();
+        )
+        .get_matches();
 
     let year: i32 = matches.value_of("year").unwrap().parse().unwrap();
     let days: Vec<i32> = matches
@@ -51,6 +55,10 @@ fn main() {
             (2018, 2) => (
                 y2018::d02::problem1(&input).to_string(),
                 y2018::d02::problem2(&input).to_string(),
+            ),
+            (2018, 3) => (
+                y2018::d03::problem1(&input).to_string(),
+                y2018::d03::problem2(&input).to_string(),
             ),
             _ => unimplemented!(),
         };

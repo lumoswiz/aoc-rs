@@ -47,14 +47,14 @@ impl Client {
         let mut buf = String::new();
 
         macro_rules! read_line {
-            () => ({
+            () => {{
                 buf.clear();
                 let bytes = reader.read_line(&mut buf)?;
                 if bytes == 0 {
                     return Err(HttpError::UnexpectedEndOfStream.into());
                 }
                 buf.trim()
-            });
+            }};
         }
 
         let status: i32 = {

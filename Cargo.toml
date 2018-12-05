@@ -7,4 +7,6 @@ authors = ["Nicholas Lordello <nlordell@gmail.com>"]
 clap = "2"
 failure = "0.1"
 failure_derive = "0.1"
+lazy_static = "1"
 native-tls = "0.2"
+regex = "1"
