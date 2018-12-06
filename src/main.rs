@@ -14,6 +14,7 @@ use clap::{App, Arg};
 use paste::item;
 use std::fmt::Display;
 use std::str::FromStr;
+use std::time::Instant;
 
 use client::Client;
 
@@ -28,7 +29,13 @@ fn main() {
                 .long("year")
                 .value_name("YEAR")
                 .default_value("2018")
+                .takes_value(true)
                 .validator(validate::<i32>),
+        )
+        .arg(
+            Arg::with_name("show-time")
+                .long("show-time")
+                .takes_value(false),
         )
         .arg(
             Arg::with_name("days")
@@ -40,6 +47,7 @@ fn main() {
         .get_matches();
 
     let year: i32 = matches.value_of("year").unwrap().parse().unwrap();
+    let show_time = matches.is_present("show-time");
     let days: Vec<i32> = matches
         .values_of("days")
         .unwrap()
@@ -51,9 +59,18 @@ fn main() {
         let input = client
             .get_input(year, day)
             .expect(&format!("failed to get input for {} day {}", year, day));
-        let answers = solve(year, day, &input);
 
-        println!("Day {}", day);
+        let start = Instant::now();
+        let answers = solve(year, day, &input);
+        let time = Instant::now() - start;
+
+        if show_time {
+            let time = time.as_secs() as f64 + time.subsec_nanos() as f64 * 1e-9;
+            println!("Day {} ({:.2}s)", day, time);
+        } else {
+            println!("Day {}", day);
+        }
+
         println!("  puzzle 1: {}", answers.0);
         println!("  puzzle 2: {}", answers.1);
     }
@@ -102,5 +119,6 @@ advent!(
         day 02,
         day 03,
         day 04,
+        day 05,
     }
 );
