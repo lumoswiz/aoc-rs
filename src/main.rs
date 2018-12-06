@@ -1,3 +1,4 @@
+extern crate chrono;
 extern crate clap;
 extern crate failure;
 extern crate failure_derive;
@@ -100,5 +101,6 @@ advent!(
         day 01,
         day 02,
         day 03,
+        day 04,
     }
 );
