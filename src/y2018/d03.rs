@@ -1,6 +1,8 @@
+use failure::{self, Error};
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
+use std::str::FromStr;
 
 struct Rect {
     x: u16,
@@ -11,6 +13,27 @@ struct Rect {
 
 lazy_static! {
     static ref CLAIM_PATTERN: Regex = Regex::new(r"#(\d+) @ (\d+),(\d+): (\d+)x(\d+)").unwrap();
+}
+
+struct Claim(i64, Rect);
+
+impl FromStr for Claim {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let c = CLAIM_PATTERN
+            .captures(s.trim())
+            .ok_or_else(|| failure::err_msg("does not match claim pattern"))?;
+        Ok(Claim(
+            c[1].parse()?,
+            Rect {
+                x: c[2].parse()?,
+                y: c[3].parse()?,
+                w: c[4].parse()?,
+                h: c[5].parse()?,
+            },
+        ))
+    }
 }
 
 fn parse<'a>(input: &'a str) -> impl 'a + Iterator<Item = (i64, Rect)> {
@@ -31,7 +54,7 @@ fn parse<'a>(input: &'a str) -> impl 'a + Iterator<Item = (i64, Rect)> {
         })
 }
 
-pub fn problem1(input: &str) -> usize {
+pub fn puzzle1(input: &str) -> usize {
     parse(input)
         .map(|(_, r)| {
             (r.x..(r.x + r.w))
@@ -55,7 +78,7 @@ pub fn problem1(input: &str) -> usize {
         .1
 }
 
-pub fn problem2(input: &str) -> i64 {
+pub fn puzzle2(input: &str) -> i64 {
     let claims = parse(input).collect::<Vec<_>>();
     let ids = claims.iter().map(|(id, _)| *id).collect::<HashSet<_>>();
 
@@ -84,31 +107,19 @@ pub fn problem2(input: &str) -> i64 {
 
 #[cfg(test)]
 mod tests {
+    const INPUT: &str = r"
+        #1 @ 1,3: 4x4
+        #2 @ 3,1: 4x4
+        #3 @ 5,5: 2x2
+    ";
+
     #[test]
-    fn problem1() {
-        assert_eq!(
-            super::problem1(
-                r"
-                #1 @ 1,3: 4x4
-                #2 @ 3,1: 4x4
-                #3 @ 5,5: 2x2
-                "
-            ),
-            4
-        );
+    fn puzzle1() {
+        assert_eq!(super::puzzle1(INPUT), 4);
     }
 
     #[test]
-    fn problem2() {
-        assert_eq!(
-            super::problem2(
-                r"
-                #1 @ 1,3: 4x4
-                #2 @ 3,1: 4x4
-                #3 @ 5,5: 2x2
-                "
-            ),
-            3
-        );
+    fn puzzle2() {
+        assert_eq!(super::puzzle2(INPUT), 3);
     }
 }

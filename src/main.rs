@@ -3,12 +3,14 @@ extern crate failure;
 extern crate failure_derive;
 extern crate lazy_static;
 extern crate native_tls;
+extern crate paste;
 extern crate regex;
 
 mod client;
-mod y2018;
+mod util;
 
 use clap::{App, Arg};
+use paste::item;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -21,8 +23,10 @@ fn main() {
         .author("Nicholas Lordello")
         .arg(
             Arg::with_name("year")
+                .short("y")
+                .long("year")
                 .value_name("YEAR")
-                .required(true)
+                .default_value("2018")
                 .validator(validate::<i32>),
         )
         .arg(
@@ -43,29 +47,14 @@ fn main() {
 
     let client = Client::from_env().expect("failed to create adventofcode.com client");
     for day in days {
-        let date = format!("{}/12/{}", day, year);
         let input = client
             .get_input(year, day)
-            .expect(&format!("failed to get input for {}", date));
-        let result = match (year, day) {
-            (2018, 1) => (
-                y2018::d01::problem1(&input).to_string(),
-                y2018::d01::problem2(&input).to_string(),
-            ),
-            (2018, 2) => (
-                y2018::d02::problem1(&input).to_string(),
-                y2018::d02::problem2(&input).to_string(),
-            ),
-            (2018, 3) => (
-                y2018::d03::problem1(&input).to_string(),
-                y2018::d03::problem2(&input).to_string(),
-            ),
-            _ => unimplemented!(),
-        };
+            .expect(&format!("failed to get input for {} day {}", year, day));
+        let answers = solve(year, day, &input);
 
-        println!("{}:", date);
-        println!(" - {}", result.0);
-        println!(" - {}", result.1);
+        println!("Day {}", day);
+        println!("  puzzle 1: {}", answers.0);
+        println!("  puzzle 2: {}", answers.1);
     }
 }
 
@@ -79,3 +68,37 @@ where
         Err(e) => Err(e.to_string()),
     }
 }
+
+macro_rules! advent {
+    ($year:tt {
+        $(day $day:tt,)*
+    }) => {
+        item! {
+            mod [<y $year>] {
+                $(
+                    pub mod [<d $day>];
+                )*
+            }
+
+            fn solve(year: i32, day: i32, input: &str) -> (String, String) {
+                match (year, day) {
+                    $(
+                        ($year, $day) => (
+                            [<y $year>]::[<d $day>]::puzzle1(input).to_string(),
+                            [<y $year>]::[<d $day>]::puzzle2(input).to_string(),
+                        ),
+                    )*
+                    (y, d) => panic!("failed to get input for {} day {}", y, d),
+                }
+            }
+        }
+    };
+}
+
+advent!(
+    2018 {
+        day 01,
+        day 02,
+        day 03,
+    }
+);

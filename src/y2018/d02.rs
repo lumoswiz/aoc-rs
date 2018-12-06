@@ -1,16 +1,14 @@
 use std::collections::HashMap;
 
-fn parse<'a>(input: &'a str) -> impl 'a + Iterator<Item = &'a str> {
-    input.trim().split(&[',', '\n'][..]).map(|s| s.trim())
-}
+use crate::util;
 
-pub fn problem1(input: &str) -> i64 {
+pub fn puzzle1(input: &str) -> i64 {
     let mut counts = HashMap::new();
 
     let mut twos = 0;
     let mut threes = 0;
 
-    for id in parse(input) {
+    for id in util::split(input) {
         counts.clear();
         let mut has_two = 0;
         let mut has_three = 0;
@@ -41,8 +39,8 @@ pub fn problem1(input: &str) -> i64 {
     twos * threes
 }
 
-pub fn problem2(input: &str) -> String {
-    let ids = parse(input).collect::<Vec<_>>();
+pub fn puzzle2(input: &str) -> String {
+    let ids = util::split(input).collect::<Vec<_>>();
     let mut diff = String::new();
 
     for (i, id) in ids.iter().cloned().enumerate() {
@@ -67,17 +65,37 @@ pub fn problem2(input: &str) -> String {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn problem1() {
+    fn puzzle1() {
         assert_eq!(
-            super::problem1("abcdef, bababc, abbcde, abcccd, aabcdd, abcdee, ababab"),
+            super::puzzle1(
+                r"
+                    abcdef
+                    bababc
+                    abbcde
+                    abcccd
+                    aabcdd
+                    abcdee
+                    ababab
+                "
+            ),
             12
         );
     }
 
     #[test]
-    fn problem2() {
+    fn puzzle2() {
         assert_eq!(
-            super::problem2("abcde, fghij, klmno, pqrst, fguij, axcye, wvxyz"),
+            super::puzzle2(
+                r"
+                    abcde
+                    fghij
+                    klmno
+                    pqrst
+                    fguij
+                    axcye
+                    wvxyz
+                "
+            ),
             "fgij".to_string()
         );
     }
