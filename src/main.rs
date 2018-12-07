@@ -120,5 +120,6 @@ advent!(
         day 03,
         day 04,
         day 05,
+        day 06,
     }
 );
