@@ -10,12 +10,12 @@ extern crate regex;
 mod client;
 mod util;
 
+use crate::client::Client;
 use clap::{App, Arg};
 use paste::item;
 use std::fmt::Display;
 use std::str::FromStr;
 use std::time::Instant;
-use crate::client::Client;
 
 fn main() {
     let matches = App::new("aoc")

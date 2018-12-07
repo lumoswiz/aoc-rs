@@ -1,8 +1,8 @@
+use crate::util;
 use failure::{self, Error};
 use std::cmp;
 use std::fmt::{self, Debug, Formatter};
 use std::str::FromStr;
-use crate::util;
 
 struct Coord(usize, usize);
 
@@ -97,8 +97,6 @@ pub fn puzzle1(input: &str) -> i64 {
         let id = (b'A' + i as u8) as char;
         let Coord(x, y) = coord;
         *grid.get_mut(x, y) = (id, 0);
-
-
     }
 
     42
