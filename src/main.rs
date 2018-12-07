@@ -15,8 +15,7 @@ use paste::item;
 use std::fmt::Display;
 use std::str::FromStr;
 use std::time::Instant;
-
-use client::Client;
+use crate::client::Client;
 
 fn main() {
     let matches = App::new("aoc")

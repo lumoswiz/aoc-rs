@@ -3,6 +3,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
+use crate::util;
 
 struct Rect {
     x: u16,
@@ -36,27 +37,9 @@ impl FromStr for Claim {
     }
 }
 
-fn parse<'a>(input: &'a str) -> impl 'a + Iterator<Item = (i64, Rect)> {
-    input
-        .trim()
-        .split('\n')
-        .map(|s| CLAIM_PATTERN.captures(s.trim()).unwrap())
-        .map(|c| {
-            (
-                c[1].parse().unwrap(),
-                Rect {
-                    x: c[2].parse().unwrap(),
-                    y: c[3].parse().unwrap(),
-                    w: c[4].parse().unwrap(),
-                    h: c[5].parse().unwrap(),
-                },
-            )
-        })
-}
-
 pub fn puzzle1(input: &str) -> usize {
-    parse(input)
-        .map(|(_, r)| {
+    util::parse::<Claim>(input)
+        .map(|Claim(_, r)| {
             (r.x..(r.x + r.w))
                 .map(move |i| (r.y..(r.y + r.h)).map(move |j| (i, j)))
                 .flatten()
@@ -79,16 +62,16 @@ pub fn puzzle1(input: &str) -> usize {
 }
 
 pub fn puzzle2(input: &str) -> i64 {
-    let claims = parse(input).collect::<Vec<_>>();
-    let ids = claims.iter().map(|(id, _)| *id).collect::<HashSet<_>>();
+    let claims = util::parse::<Claim>(input).collect::<Vec<_>>();
+    let ids = claims.iter().map(|Claim(id, _)| *id).collect::<HashSet<_>>();
 
     let len = claims.len();
     let mut no_overlap = (0..len)
         .map(|i| ((i + 1)..len).map(move |j| (i, j)))
         .flatten()
         .fold(ids, |mut ids, (i, j)| {
-            let (ref id1, ref r1) = &claims[i];
-            let (ref id2, ref r2) = &claims[j];
+            let Claim(ref id1, ref r1) = &claims[i];
+            let Claim(ref id2, ref r2) = &claims[j];
 
             if r1.x + r1.w > r2.x && r1.x < r2.x + r2.w && r1.y + r1.h > r2.y && r1.y < r2.y + r2.h
             {

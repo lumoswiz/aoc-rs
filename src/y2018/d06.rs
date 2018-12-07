@@ -2,7 +2,6 @@ use failure::{self, Error};
 use std::cmp;
 use std::fmt::{self, Debug, Formatter};
 use std::str::FromStr;
-
 use crate::util;
 
 struct Coord(usize, usize);
@@ -105,7 +104,7 @@ pub fn puzzle1(input: &str) -> i64 {
     42
 }
 
-pub fn puzzle2(input: &str) -> i64 {
+pub fn puzzle2(_input: &str) -> i64 {
     0
 }
 
