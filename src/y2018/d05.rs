@@ -1,87 +1,58 @@
 use std::cmp;
-use std::collections::{BTreeMap, HashSet};
-use std::iter;
+use std::collections::HashSet;
 
-fn reduce_chain<I: Iterator<Item = usize>>(input: &str, skip: I) -> usize {
-    let chain = input.trim().as_bytes();
-    let mut reductions = skip.map(|s| (s, 1usize)).collect::<BTreeMap<_, _>>();
-    let mut pairs = Vec::new();
+fn reduce_chain(chain: &mut Vec<u8>) {
+    let mut i = 0;
+    let mut pos = 1;
 
-    loop {
-        {
-            let mut start = 0;
-            let mut indices = reductions
-                .iter()
-                .map(|(i, l)| (*i, *l))
-                .chain(iter::once((chain.len(), 0)))
-                .map(|(i, l)| {
-                    if i > start {
-                        let s = start;
-                        start = i + l;
-                        (s..i)
-                    } else {
-                        start += l;
-                        (0..0)
-                    }
-                })
-                .flatten();
-
-            let mut i1 = match indices.next() {
-                Some(i) => i,
-                None => return 0,
-            };
-            while let Some(i2) = indices.next() {
-                i1 = if chain[i1].is_ascii_lowercase() ^ chain[i2].is_ascii_lowercase()
-                    && chain[i1].to_ascii_lowercase() == chain[i2].to_ascii_lowercase()
-                {
-                    pairs.push(i1);
-                    match indices.next() {
-                        Some(i) => i,
-                        None => break,
-                    }
-                } else {
-                    i2
-                };
+    while i != pos {
+        i = 0;
+        pos = 0;
+        while i + 1 < chain.len() {
+            if chain[i].is_ascii_uppercase() ^ chain[i + 1].is_ascii_uppercase()
+                && chain[i].to_ascii_uppercase() == chain[i + 1].to_ascii_uppercase()
+            {
+                i += 2;
+            } else {
+                chain[pos] = chain[i];
+                pos += 1;
+                i += 1;
             }
         }
-
-        if pairs.is_empty() {
-            break;
+        if i < chain.len() {
+            chain[pos] = chain[i];
+            pos += 1;
+            i += 1;
         }
 
-        for i in pairs.drain(..) {
-            reductions.insert(i, 2);
-        }
+        chain.truncate(pos);
     }
-
-    let total_reductions: usize = reductions.values().cloned().sum();
-    chain.len() - total_reductions
 }
 
 pub fn puzzle1(input: &str) -> usize {
-    reduce_chain(input, iter::empty())
+    let mut chain = input.trim().as_bytes().to_vec();
+    reduce_chain(&mut chain);
+
+    chain.len()
 }
 
 pub fn puzzle2(input: &str) -> usize {
     let chain = input.trim().as_bytes();
     let unique_units = chain
         .iter()
-        .map(|b| b.to_ascii_lowercase())
+        .map(|b| b.to_ascii_uppercase())
         .collect::<HashSet<_>>();
 
-    let mut min = None;
+    let mut shortest = chain.len();
+    let mut filtered = Vec::<u8>::with_capacity(chain.len());
     for unit in unique_units {
-        let skip = chain
-            .iter()
-            .enumerate()
-            .filter(|(_, c)| c.to_ascii_lowercase() == unit)
-            .map(|(i, _)| i);
-        let reduced_len = reduce_chain(input, skip);
-
-        min = min.map(|m| cmp::min(m, reduced_len)).or(Some(reduced_len));
+        filtered.clear();
+        filtered.extend(chain.iter().filter(|b| b.to_ascii_uppercase() != unit));
+        reduce_chain(&mut filtered);
+        shortest = cmp::min(filtered.len(), shortest);
     }
 
-    min.unwrap_or(chain.len())
+    shortest
 }
 
 #[cfg(test)]
