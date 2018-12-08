@@ -12,7 +12,7 @@ mod util;
 
 use crate::client::Client;
 use clap::{App, Arg};
-use paste::item;
+use paste::item_with_macros;
 use std::fmt::Display;
 use std::str::FromStr;
 use std::time::Instant;
@@ -90,7 +90,7 @@ macro_rules! advent {
     ($year:tt {
         $(day $day:tt,)*
     }) => {
-        item! {
+        item_with_macros! {
             mod [<y $year>] {
                 $(
                     pub mod [<d $day>];
