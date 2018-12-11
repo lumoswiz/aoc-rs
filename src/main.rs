@@ -122,5 +122,7 @@ advent!(
         day 06,
         day 07,
         day 08,
+        day 09,
+        day 10,
     }
 );

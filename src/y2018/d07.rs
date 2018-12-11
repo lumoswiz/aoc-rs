@@ -133,7 +133,7 @@ fn puzzle2_with_args(input: &str, nworkers: usize, overhead: usize) -> usize {
             break;
         }
 
-        workers.sort_by_key(|(_, d)| Reverse(*d));
+        workers.sort_unstable_by_key(|(_, d)| Reverse(*d));
         let (next, complete) = workers.pop().unwrap();
         for (_, ref mut dur) in workers.iter_mut() {
             *dur -= complete;
