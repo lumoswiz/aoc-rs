@@ -88,7 +88,7 @@ macro_rules! advent {
 
         fn solve(year: i32, day: i32, input: &str) -> (String, String) {
             let year_str = format!("year{}", year);
-            let day_str = format!("day{}", day);
+            let day_str = format!("day{:02}", day);
 
             match (year_str.as_str(), day_str.as_str()) {
                 $(
