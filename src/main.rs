@@ -1,18 +1,8 @@
-extern crate chrono;
-extern crate clap;
-extern crate failure;
-extern crate failure_derive;
-extern crate lazy_static;
-extern crate native_tls;
-extern crate paste;
-extern crate regex;
-
 mod client;
 mod util;
 
 use crate::client::Client;
 use clap::{App, Arg};
-use paste::item_with_macros;
 use std::fmt::Display;
 use std::str::FromStr;
 use std::time::Instant;
@@ -88,42 +78,41 @@ where
 
 macro_rules! advent {
     ($year:tt {
-        $(day $day:tt,)*
+        $($day:tt,)*
     }) => {
-        item_with_macros! {
-            mod [<y $year>] {
-                $(
-                    pub mod [<d $day>];
-                )*
-            }
+        mod $year {
+            $(
+                pub mod $day;
+            )*
+        }
 
-            fn solve(year: i32, day: i32, input: &str) -> (String, String) {
-                match (year, day) {
-                    $(
-                        ($year, $day) => (
-                            [<y $year>]::[<d $day>]::puzzle1(input).to_string(),
-                            [<y $year>]::[<d $day>]::puzzle2(input).to_string(),
-                        ),
-                    )*
-                    (y, d) => panic!("failed to get input for {} day {}", y, d),
-                }
+        fn solve(year: i32, day: i32, input: &str) -> (String, String) {
+            let year_str = format!("year{}", year);
+            let day_str = format!("day{}", day);
+
+            match (year_str.as_str(), day_str.as_str()) {
+                $(
+                    (stringify!($year), stringify!($day)) => (
+                        $year::$day::puzzle1(input).to_string(),
+                        $year::$day::puzzle2(input).to_string(),
+                    ),
+                )*
+                _ => panic!("failed to get input for year {} day {}", year, day),
             }
         }
     };
 }
 
-advent!(
-    2018 {
-        day 01,
-        day 02,
-        day 03,
-        day 04,
-        day 05,
-        day 06,
-        day 07,
-        day 08,
-        day 09,
-        day 10,
-        day 11,
-    }
-);
+advent!(year2018 {
+    day01,
+    day02,
+    day03,
+    day04,
+    day05,
+    day06,
+    day07,
+    day08,
+    day09,
+    day10,
+    day11,
+});

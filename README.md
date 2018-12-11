@@ -11,7 +11,7 @@ cargo test
 
 To run tests for a specific day:
 ```sh
-cargo test y${YEAR}::d${DAY}
+cargo test year${YEAR}::day${DAY}
 ```
 
 To run with actual input:
