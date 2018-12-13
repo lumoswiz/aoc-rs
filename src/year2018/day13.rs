@@ -55,7 +55,7 @@ impl Railway {
         Railway { tracks, trains }
     }
 
-    fn step(&mut self, collisions: &mut Vec<(usize, usize)>) {
+    fn tick(&mut self, collisions: &mut Vec<(usize, usize)>) {
         self.trains.sort_unstable_by_key(|t| (t.pos.1, t.pos.0));
         collisions.clear();
 
@@ -159,7 +159,7 @@ pub fn puzzle1(input: &str) -> String {
     let mut collisions = Vec::new();
 
     while collisions.is_empty() {
-        railway.step(&mut collisions);
+        railway.tick(&mut collisions);
     }
 
     format!("{},{}", collisions[0].0, collisions[0].1)
@@ -170,7 +170,7 @@ pub fn puzzle2(input: &str) -> String {
     let mut collisions = Vec::new();
 
     while railway.trains.len() > 1 {
-        railway.step(&mut collisions);
+        railway.tick(&mut collisions);
     }
 
     format!("{},{}", railway.trains[0].pos.0, railway.trains[0].pos.1)
