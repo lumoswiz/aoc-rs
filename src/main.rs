@@ -118,4 +118,7 @@ advent!(year2018 {
     day12,
     day13,
     day14,
+    day15,
+    day16,
+    day17,
 });
