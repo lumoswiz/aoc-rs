@@ -1,40 +1,24 @@
+use crate::util::Grid;
+use nalgebra::Point2;
 use std::collections::HashMap;
-use std::fmt::{self, Debug, Formatter};
 use std::mem;
 use std::str;
 
-struct Grid {
-    dim: (usize, usize),
-    data: Vec<u8>,
-    next: Vec<u8>,
+struct Field {
+    current: Grid,
+    next: Grid,
 }
 
-impl Grid {
-    fn new(layout: &str) -> Grid {
-        let width = layout.trim().find('\n').unwrap();
-        let data = layout
-            .trim()
-            .split('\n')
-            .map(|l| l.trim().bytes())
-            .flatten()
-            .collect::<Vec<_>>();
-        let height = data.len() / width;
-        let dim = (width, height);
-        let next = vec![b'.'; data.len()];
+impl Field {
+    fn new(layout: &str) -> Field {
+        let current = Grid::from_layout(layout);
+        let (w, h) = current.size();
+        let next = Grid::new(w, h);
 
-        Grid { dim, data, next }
+        Field { current, next }
     }
 
-    fn index_of(&self, x: usize, y: usize) -> usize {
-        x + y * self.dim.0
-    }
-
-    fn get(&self, x: usize, y: usize) -> u8 {
-        let i = self.index_of(x, y);
-        self.data[i]
-    }
-
-    fn adjacent<'a>(&'a self, x: usize, y: usize) -> impl 'a + Iterator<Item = u8> {
+    fn adjacent<'a>(&'a self, pos: Point2<usize>) -> impl 'a + Iterator<Item = u8> {
         static ADJACENT: [(isize, isize); 8] = [
             (0, 1),
             (1, 1),
@@ -45,109 +29,91 @@ impl Grid {
             (-1, 0),
             (-1, 1),
         ];
-        let (w, h) = self.dim;
-        let (w, h) = (w as isize, h as isize);
-
         ADJACENT
             .iter()
-            .map(move |(dx, dy)| ((x as isize) + dx, (y as isize) + dy))
-            .filter(move |&(x, y)| x >= 0 && x < w && y >= 0 && y < h)
-            .map(move |(x, y)| self.get(x as usize, y as usize))
+            .map(move |(dx, dy)| ((pos[0] as isize) + dx, (pos[1] as isize) + dy))
+            .filter_map(move |(x, y)| self.current.get([x as usize, y as usize]))
     }
 
     fn generation(&mut self) {
-        let (w, h) = self.dim;
-        for x in 0..w {
-            for y in 0..h {
-                let (_, tree, yard) =
-                    self.adjacent(x, y)
-                        .fold((0, 0, 0), |(empty, tree, yard), b| match b {
-                            b'.' => (empty + 1, tree, yard),
-                            b'|' => (empty, tree + 1, yard),
-                            b'#' => (empty, tree, yard + 1),
-                            _ => (empty, tree, yard),
-                        });
+        for (pos, acre) in self.current.iter() {
+            let (_, tree, yard) = self
+                .adjacent(pos)
+                .fold((0, 0, 0), |(empty, tree, yard), a| match a {
+                    b'.' => (empty + 1, tree, yard),
+                    b'|' => (empty, tree + 1, yard),
+                    b'#' => (empty, tree, yard + 1),
+                    _ => (empty, tree, yard),
+                });
 
-                let curr = self.get(x, y);
-                let i = self.index_of(x, y);
-                self.next[i] = match curr {
-                    b'.' => {
-                        if tree >= 3 {
-                            b'|'
-                        } else {
-                            b'.'
-                        }
+            self.next[pos] = match acre {
+                b'.' => {
+                    if tree >= 3 {
+                        b'|'
+                    } else {
+                        b'.'
                     }
-                    b'|' => {
-                        if yard >= 3 {
-                            b'#'
-                        } else {
-                            b'|'
-                        }
-                    }
-                    b'#' => {
-                        if tree > 0 && yard > 0 {
-                            b'#'
-                        } else {
-                            b'.'
-                        }
-                    }
-                    _ => unreachable!(),
                 }
+                b'|' => {
+                    if yard >= 3 {
+                        b'#'
+                    } else {
+                        b'|'
+                    }
+                }
+                b'#' => {
+                    if tree > 0 && yard > 0 {
+                        b'#'
+                    } else {
+                        b'.'
+                    }
+                }
+                _ => unreachable!(),
             }
         }
 
-        mem::swap(&mut self.data, &mut self.next);
+        mem::swap(&mut self.current, &mut self.next);
     }
 
     fn count(&self) -> usize {
-        let (tree, yard) = self.data.iter().fold((0, 0), |(tree, yard), b| match *b {
-            b'|' => (tree + 1, yard),
-            b'#' => (tree, yard + 1),
-            _ => (tree, yard),
-        });
+        let (tree, yard) = self
+            .current
+            .iter()
+            .fold((0, 0), |(tree, yard), (_, acre)| match acre {
+                b'|' => (tree + 1, yard),
+                b'#' => (tree, yard + 1),
+                _ => (tree, yard),
+            });
         tree * yard
     }
 }
 
-impl Debug for Grid {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let (w, h) = self.dim;
-        for j in 0..h {
-            let slice = &self.data[j * w..(j + 1) * w];
-            writeln!(f, "{}", unsafe { str::from_utf8_unchecked(slice) })?;
-        }
-
-        Ok(())
-    }
-}
-
 pub fn puzzle1(input: &str) -> usize {
-    let mut grid = Grid::new(input);
+    let mut field = Field::new(input);
 
     for _ in 0..10 {
-        grid.generation();
+        field.generation();
     }
 
-    grid.count()
+    field.count()
 }
 
 pub fn puzzle2(input: &str) -> usize {
     const GENERATIONS: usize = 1000000000;
 
-    let mut grid = Grid::new(input);
+    let mut field = Field::new(input);
     let mut values = HashMap::new();
     let mut counts = Vec::new();
 
     'outer: for i in 0.. {
-        counts.push(grid.count());
-        if let Some(prev) = values.insert(grid.data.clone(), i) {
+        counts.push(field.count());
+        if let Some(prev) = values.insert(field.current.as_bytes().to_owned(), i) {
             let period = i - prev;
             let result = i - period + ((GENERATIONS - i) % period);
 
             return counts[result];
         }
-        grid.generation();
+        field.generation();
     }
 
     unreachable!();

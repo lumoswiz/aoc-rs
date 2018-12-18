@@ -1,9 +1,9 @@
-use crate::util;
+use crate::util::{self, Grid};
 use failure::Error;
 use lazy_static::lazy_static;
+use nalgebra::{Point2, Vector2};
 use regex::Regex;
 use std::cmp;
-use std::fmt::{self, Debug, Formatter};
 use std::ops::RangeInclusive;
 use std::str::{self, FromStr};
 
@@ -14,11 +14,11 @@ struct Vein {
 }
 
 impl Vein {
-    fn iter(&self) -> impl Iterator<Item = (usize, usize)> {
+    fn iter(&self) -> impl Iterator<Item = Point2<usize>> {
         let ys = self.y.clone();
         self.x
             .clone()
-            .map(move |x| ys.clone().map(move |y| (x, y)))
+            .map(move |x| ys.clone().map(move |y| [x, y].into()))
             .flatten()
     }
 }
@@ -54,19 +54,17 @@ impl FromStr for Vein {
     }
 }
 
-struct Grid {
-    bounds: (usize, usize, usize, usize),
-    size: (usize, usize),
-    count_start: usize,
-    fountain: (usize, usize),
-    data: Vec<u8>,
+struct Ground {
+    fountain: Point2<usize>,
+    ymin: usize,
+    grid: Grid,
 }
 
-impl Grid {
-    fn new(veins: &[Vein], fountain: (usize, usize)) -> Grid {
+impl Ground {
+    fn new(veins: &[Vein], fountain: Point2<usize>) -> Ground {
         let (bounds, ymin) = veins.iter().fold(
             (
-                (fountain.0, fountain.0, fountain.1, fountain.1),
+                (fountain[0], fountain[0], fountain[1], fountain[1]),
                 usize::max_value(),
             ),
             |(bounds, ymin), vein| {
@@ -81,91 +79,77 @@ impl Grid {
                 )
             },
         );
-        let size = (bounds.1 - bounds.0 + 1, bounds.3 - bounds.2 + 1);
-        let count_start = ymin * size.0;
-        let data = vec![b'.'; size.0 * size.1];
 
-        let mut grid = Grid {
-            bounds,
-            size,
-            count_start,
-            fountain,
-            data,
-        };
+        let w = bounds.1 - bounds.0 + 1;
+        let h = bounds.3 - bounds.2 + 1;
+        let origin = Vector2::new(bounds.0, bounds.2);
 
-        *grid.get_mut(fountain) = b'+';
+        let mut grid = Grid::new(w, h);
+
+        grid[fountain - origin] = b'+';
         for vein in veins.iter() {
             for pos in vein.iter() {
-                *grid.get_mut(pos) = b'#';
+                grid[pos - origin] = b'#';
             }
         }
 
-        grid
-    }
-
-    fn index_of(&self, (x, y): (usize, usize)) -> usize {
-        let (xmin, _, ymin, _) = self.bounds;
-        let (w, _) = self.size;
-
-        (x - xmin) + (y - ymin) * w
-    }
-
-    fn get(&self, pos: (usize, usize)) -> u8 {
-        let index = self.index_of(pos);
-        self.data[index]
-    }
-
-    fn get_mut(&mut self, pos: (usize, usize)) -> &mut u8 {
-        let index = self.index_of(pos);
-        &mut self.data[index]
+        Ground {
+            fountain: fountain - origin,
+            ymin,
+            grid,
+        }
     }
 
     fn flow(&mut self) -> (usize, usize) {
         let mut falling = vec![self.fountain];
 
         while let Some(pos) = falling.pop() {
-            let next_pos = (pos.0, pos.1 + 1);
-            if next_pos.1 > self.bounds.3 {
-                continue;
-            }
+            let next_pos = pos + Vector2::y();
+            let next = match self.grid.get(next_pos) {
+                Some(next) => next,
+                None => continue,
+            };
 
-            match self.get(next_pos) {
+            match next {
                 b'.' => {
-                    *self.get_mut(next_pos) = b'|';
+                    self.grid[next_pos] = b'|';
                     falling.push(next_pos);
                 }
                 b'|' => continue,
                 b'#' | b'~' => {
-                    let mut start = pos.0;
-                    let mut end = pos.0;
+                    let mut start = pos[0];
+                    let mut end = pos[0];
                     let mut closed = (false, false);
+
                     for i in 1.. {
-                        let p = (pos.0 - i, pos.1);
-                        match (self.get((p.0, p.1)), self.get((p.0, p.1 + 1))) {
+                        let offset = Vector2::new(i, 0);
+                        let p = pos - offset;
+                        match (self.grid[p], self.grid[p + Vector2::y()]) {
                             (b'#', _) => {
                                 closed.0 = true;
-                                start = p.0 + 1;
+                                start = p[0] + 1;
                                 break;
                             }
                             (_, b'#') | (_, b'~') => continue,
                             (_, b'.') | (_, b'|') => {
-                                start = p.0;
+                                start = p[0];
                                 break;
                             }
                             _ => unreachable!(),
                         }
                     }
                     for i in 1.. {
-                        let p = (pos.0 + i, pos.1);
-                        match (self.get((p.0, p.1)), self.get((p.0, p.1 + 1))) {
+                        let offset = Vector2::new(i, 0);
+                        let p = pos + offset;
+                        match (self.grid[p], self.grid[p + Vector2::y()]) {
                             (b'#', _) => {
                                 closed.1 = true;
-                                end = p.0 - 1;
+                                end = p[0] - 1;
                                 break;
                             }
                             (_, b'#') | (_, b'~') => continue,
                             (_, b'.') | (_, b'|') => {
-                                end = p.0;
+                                end = p[0];
                                 break;
                             }
                             _ => unreachable!(),
@@ -173,52 +157,41 @@ impl Grid {
                     }
                     let fill = match closed {
                         (true, true) => {
-                            let prev_pos = (pos.0, pos.1 - 1);
-                            falling.push(prev_pos);
+                            falling.push(pos - Vector2::y());
                             b'~'
                         }
                         (left, right) => {
                             if !left {
-                                falling.push((start, pos.1));
+                                falling.push([start, pos[1]].into());
                             }
                             if !right {
-                                falling.push((end, pos.1));
+                                falling.push([end, pos[1]].into());
                             }
                             b'|'
                         }
                     };
                     for x in start..=end {
-                        let p = (x, pos.1);
-                        *self.get_mut(p) = fill;
+                        self.grid[[x, pos[1]]] = fill;
                     }
                 }
                 _ => unreachable!(),
             }
         }
 
-        self.data[self.count_start..].iter().fold((0, 0), |(s, r), b| match *b {
-            b'~' => (s + 1, r),
-            b'|' => (s, r + 1),
-            _ => (s, r),
-        })
-    }
-}
-
-impl Debug for Grid {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let (w, h) = self.size;
-        for j in 0..h {
-            let slice = &self.data[w * j..w * (j + 1)];
-            let s = unsafe { str::from_utf8_unchecked(slice) };
-            writeln!(f, "{}", s)?;
-        }
-        Ok(())
+        self.grid
+            .iter()
+            .filter(|(pos, _)| pos[1] >= self.ymin)
+            .fold((0, 0), |(s, r), (_, b)| match b {
+                b'~' => (s + 1, r),
+                b'|' => (s, r + 1),
+                _ => (s, r),
+            })
     }
 }
 
 pub fn puzzle1(input: &str) -> usize {
     let veins = util::parse::<Vein>(input).collect::<Vec<_>>();
-    let mut grid = Grid::new(&veins, (500, 0));
+    let mut grid = Ground::new(&veins, [500, 0].into());
     let (still, running) = grid.flow();
 
     still + running
@@ -226,7 +199,7 @@ pub fn puzzle1(input: &str) -> usize {
 
 pub fn puzzle2(input: &str) -> usize {
     let veins = util::parse::<Vein>(input).collect::<Vec<_>>();
-    let mut grid = Grid::new(&veins, (500, 0));
+    let mut grid = Ground::new(&veins, [500, 0].into());
     let (still, _) = grid.flow();
 
     still

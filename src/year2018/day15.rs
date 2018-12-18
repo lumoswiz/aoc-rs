@@ -1,3 +1,22 @@
+struct Area {
+    dim: (usize, usize),
+    layout: Vec<u8>,
+}
+
+impl Area {
+    fn new(layout: &str) -> Area {
+        let (dim, layout) = layout.trim().split('\n').map(|l| l.trim()).fold(
+            ((0, 0), Vec::with_capacity(layout.len())),
+            |((_, h), mut layout), line| {
+                layout.extend_from_slice(line.as_bytes());
+                ((line.len(), h + 1), layout)
+            },
+        );
+
+        Area { dim, layout }
+    }
+}
+
 pub fn puzzle1(input: &str) -> i64 {
     0
 }
