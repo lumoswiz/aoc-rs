@@ -65,7 +65,7 @@ impl FromStr for Inst {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-enum Op {
+pub enum Op {
     Addr,
     Addi,
     Mulr,
@@ -108,7 +108,7 @@ impl Op {
     }
 
     #[rustfmt::skip]
-    fn exec(&self, (a, b, c): (i32, i32, i32), registers: &mut [i32; 4]) {
+    pub fn exec(&self, (a, b, c): (i32, i32, i32), registers: &mut [i32]) {
         macro_rules! r {
             ($i:expr) => { registers[$i as usize] };
         }
