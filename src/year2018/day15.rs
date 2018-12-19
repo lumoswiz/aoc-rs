@@ -1,20 +1,48 @@
+#![allow(bad_style, unused_variables, dead_code)]
+
+use crate::util::Grid;
+use nalgebra::Point2;
+
+enum UnitKind {
+    Elf,
+    Goblin,
+}
+
+struct Unit {
+    kind: UnitKind,
+    pos: Point2<usize>,
+}
+
 struct Area {
-    dim: (usize, usize),
-    layout: Vec<u8>,
+    grid: Grid,
+    units: Vec<Unit>,
 }
 
 impl Area {
     fn new(layout: &str) -> Area {
-        let (dim, layout) = layout.trim().split('\n').map(|l| l.trim()).fold(
-            ((0, 0), Vec::with_capacity(layout.len())),
-            |((_, h), mut layout), line| {
-                layout.extend_from_slice(line.as_bytes());
-                ((line.len(), h + 1), layout)
-            },
-        );
+        let mut grid = Grid::from_layout(layout);
+        let mut units = Vec::new();
 
-        Area { dim, layout }
+        for (pos, a) in grid.iter_mut() {
+            let kind = match *a {
+                b'E' => Some(UnitKind::Elf),
+                b'G' => Some(UnitKind::Goblin),
+                _ => None,
+            };
+            if let Some(kind) = kind {
+                *a = b'.';
+                units.push(Unit { kind, pos });
+            }
+        }
+
+        Area { grid, units }
     }
+
+    fn sort_units(&mut self) {
+        self.units.sort_unstable_by_key(|u| (u.pos[1], u.pos[0]));
+    }
+
+
 }
 
 pub fn puzzle1(input: &str) -> i64 {
