@@ -1,3 +1,4 @@
+/*
 use crate::util::Grid;
 use nalgebra::Point2;
 
@@ -14,7 +15,6 @@ struct Unit {
 
 struct Battle {
     grid: Grid,
-    regions: Grid,
     units: Vec<Unit>,
 }
 
@@ -68,6 +68,7 @@ impl Battle {
         
     }
 }
+*/
 
 pub fn puzzle1(_input: &str) -> i64 {
     0
