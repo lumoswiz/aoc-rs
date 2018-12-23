@@ -124,3 +124,28 @@ impl Debug for Grid {
         Ok(())
     }
 }
+
+pub fn adjacent4(pos: Point2<usize>) -> impl Iterator<Item = Point2<usize>> {
+    static ADJACENT: [(isize, isize); 4] = [(0, 1), (-1, 0), (1, 0), (0, -1)];
+    ADJACENT
+        .iter()
+        .map(move |(dx, dy)| ((pos[0] as isize) + dx, (pos[1] as isize) + dy))
+        .map(|(x, y)| Point2::new(x as usize, y as usize))
+}
+
+pub fn adjacent8(pos: Point2<usize>) -> impl Iterator<Item = Point2<usize>> {
+    static ADJACENT: [(isize, isize); 8] = [
+        (0, 1),
+        (1, 1),
+        (1, 0),
+        (1, -1),
+        (0, -1),
+        (-1, -1),
+        (-1, 0),
+        (-1, 1),
+    ];
+    ADJACENT
+        .iter()
+        .map(move |(dx, dy)| ((pos[0] as isize) + dx, (pos[1] as isize) + dy))
+        .map(|(x, y)| Point2::new(x as usize, y as usize))
+}

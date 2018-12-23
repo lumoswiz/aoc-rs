@@ -1,7 +1,7 @@
-use crate::util::Grid;
+use crate::util::{self, Grid};
 use nalgebra::Point2;
 use std::cmp;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::usize;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -83,7 +83,7 @@ impl Battle {
         while let Some(pos) = self.dists_pending.pop() {
             let dist = self.dists[&pos] + 1;
 
-            for next_pos in adjacent(pos) {
+            for next_pos in util::adjacent4(pos) {
                 if self.grid.get(pos).is_none() {
                     continue;
                 }
@@ -108,7 +108,7 @@ impl Battle {
             self.calc_dists(unit.pos);
 
             let enemies = self.units.iter().filter(|u| u.kind != unit.kind);
-            let targets = enemies.map(|u| adjacent(u.pos)).flatten();
+            let targets = enemies.map(|u| util::adjacent4(u.pos)).flatten();
 
             let mut closest = (usize::MAX, 0usize, 0usize);
             for p in targets {
@@ -130,7 +130,7 @@ impl Battle {
 
             movement = true;
             self.calc_dists(Point2::new(closest.2, closest.1));
-            let (_, y, x) = adjacent(unit.pos)
+            let (_, y, x) = util::adjacent4(unit.pos)
                 .map(|p| (p, self.dist(p)))
                 .fold((usize::MAX, 0usize, 0usize), |s, (p, dist)| {
                     cmp::min((dist, p[1], p[0]), s)
@@ -146,11 +146,10 @@ impl Battle {
 
         movement
     }
-    
+
     fn attack(&mut self, moved: bool) {
         for i in 0..self.units.len() {
             let kind = self.units[i].kind;
-
         }
     }
 
@@ -161,14 +160,6 @@ impl Battle {
             self.attack(moved);
         }
     }
-}
-
-fn adjacent(pos: Point2<usize>) -> impl Iterator<Item = Point2<usize>> {
-    static ADJACENT: [(isize, isize); 4] = [(0, 1), (-1, 0), (1, 0), (0, -1)];
-    ADJACENT
-        .iter()
-        .map(move |(dx, dy)| ((pos[0] as isize) + dx, (pos[1] as isize) + dy))
-        .map(|(x, y)| Point2::new(x as usize, y as usize))
 }
 
 pub fn puzzle1(input: &str) -> i64 {

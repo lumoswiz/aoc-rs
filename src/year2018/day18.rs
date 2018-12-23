@@ -1,4 +1,4 @@
-use crate::util::Grid;
+use crate::util::{self, Grid};
 use nalgebra::Point2;
 use std::collections::HashMap;
 use std::mem;
@@ -19,20 +19,7 @@ impl Field {
     }
 
     fn adjacent<'a>(&'a self, pos: Point2<usize>) -> impl 'a + Iterator<Item = u8> {
-        static ADJACENT: [(isize, isize); 8] = [
-            (0, 1),
-            (1, 1),
-            (1, 0),
-            (1, -1),
-            (0, -1),
-            (-1, -1),
-            (-1, 0),
-            (-1, 1),
-        ];
-        ADJACENT
-            .iter()
-            .map(move |(dx, dy)| ((pos[0] as isize) + dx, (pos[1] as isize) + dy))
-            .filter_map(move |(x, y)| self.current.get([x as usize, y as usize]))
+        util::adjacent8(pos).filter_map(move |p| self.current.get(p))
     }
 
     fn generation(&mut self) {
