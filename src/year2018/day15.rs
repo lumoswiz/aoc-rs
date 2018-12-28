@@ -1,6 +1,7 @@
 use crate::util::{self, Grid};
 use nalgebra::Point2;
-use std::collections::HashMap;
+use std::cmp::Reverse;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::usize;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -24,9 +25,15 @@ impl UnitKind {
             UnitKind::Goblin => b'G',
         }
     }
+
+    fn enemy(&self) -> UnitKind {
+        match self {
+            UnitKind::Elf => UnitKind::Goblin,
+            UnitKind::Goblin => UnitKind::Elf,
+        }
+    }
 }
 
-#[derive(Clone)]
 struct Unit {
     kind: UnitKind,
     pos: Point2<usize>,
@@ -34,13 +41,74 @@ struct Unit {
     health: i32,
 }
 
+struct Pathfinder {
+    seen: HashSet<Point2<usize>>,
+    targets: HashSet<Point2<usize>>,
+    pending: VecDeque<(Point2<usize>, Point2<usize>, usize)>,
+}
+
+impl Pathfinder {
+    fn new() -> Pathfinder {
+        Pathfinder {
+            seen: HashSet::new(),
+            targets: HashSet::new(),
+            pending: VecDeque::new(),
+        }
+    }
+
+    fn search<I: Iterator<Item = Point2<usize>>>(
+        &mut self,
+        start: Point2<usize>,
+        targets: I,
+        grid: &Grid,
+    ) -> Option<Point2<usize>> {
+        self.seen.clear();
+        self.targets.clear();
+        self.pending.clear();
+
+        self.seen.insert(start);
+        for target in targets {
+            if target == start {
+                return None;
+            }
+            self.targets.insert(target);
+        }
+        for p in util::adjacent4(start).filter(|p| grid.get(*p) == Some(b'.')) {
+            self.pending.push_back((p, p, 1));
+        }
+
+        let mut best: Option<(Point2<usize>, Point2<usize>, usize)> = None;
+        while let Some((start, next, dist)) = self.pending.pop_front() {
+            if best.map(|b| b.2).unwrap_or(dist) < dist {
+                break;
+            }
+
+            if self.targets.contains(&next) {
+                best = match best {
+                    Some((s, n, d))
+                        if (d, n[1], n[0], s[1], s[0])
+                            < (dist, next[1], next[0], start[1], start[0]) =>
+                    {
+                        Some((s, n, d))
+                    }
+                    _ => Some((start, next, dist)),
+                }
+            } else {
+                for p in util::adjacent4(next).filter(|p| grid.get(*p) == Some(b'.')) {
+                    if self.seen.insert(p) {
+                        self.pending.push_back((start, p, dist + 1));
+                    }
+                }
+            }
+        }
+
+        best.map(|b| b.0)
+    }
+}
+
 struct Battle {
     grid: Grid,
     units: Vec<Unit>,
-
-    dists: HashMap<Point2<usize>, usize>,
-    dists_pending: Vec<Point2<usize>>,
-    poss: HashMap<Point2<usize>, usize>,
 }
 
 impl Battle {
@@ -61,13 +129,77 @@ impl Battle {
             }
         }
 
-        Battle {
-            grid,
-            units,
-            dists: HashMap::new(),
-            dists_pending: Vec::new(),
-            poss,
+        Battle { grid, units }
+    }
+
+    fn outcome(&mut self) -> i32 {
+        println!("{:?}", self.grid);
+
+        self.sort_units();
+
+        let mut pathfinder = Pathfinder::new();
+        let mut rounds = 0;
+        let mut should_move = true;
+
+        //'battle: while !self.complete() {
+        'battle: for _ in 0..5 {
+            let mut updated = false;
+
+            let mut i = 0;
+            while i < self.units.len() {
+                macro_rules! u {
+                    () => {
+                        self.units[i]
+                    };
+                }
+
+                let mut enemies = self.units.iter().filter(|u| u!().kind != u.kind).peekable();
+                if let None = enemies.peek() {
+                    break 'battle;
+                }
+
+                if should_move {
+                    let targets = enemies
+                        .map(|u| util::adjacent4(u.pos))
+                        .flatten()
+                        .filter(|p| *p == u!().pos || self.grid.get(*p) == Some(b'.'));
+                    let move_to = pathfinder.search(u!().pos, targets, &self.grid);
+                    if let Some(move_to) = move_to {
+                        updated = true;
+                        self.grid[u!().pos] = b'.';
+                        self.grid[move_to] = u!().kind.into_raw();
+                        u!().pos = move_to;
+                    }
+                }
+
+                let enemy = util::adjacent4(u!().pos)
+                    .filter(|p| self.grid.get(*p) == Some(u!().kind.enemy().into_raw()))
+                    .map(|p| {
+                        self.units
+                            .iter()
+                            .enumerate()
+                            .find(|(_, u)| u.pos == p)
+                            .expect("unit on grid but not in registry")
+                    })
+                    .min_by_key(|(_, u)| (u.health, u.pos[1], u.pos[0]))
+                    .map(|(i, _)| i);
+                if let Some(enemy) = enemy {
+                    println!("{} attacks {}", i, enemy);
+                }
+
+                i += 1;
+            }
+
+            if updated {}
+
+            should_move = updated;
+            rounds += 1;
+
+            println!("----- {} -----", rounds);
+            println!("{:?}", self.grid);
         }
+
+        0
     }
 
     fn complete(&self) -> bool {
@@ -83,6 +215,11 @@ impl Battle {
     fn sort_units(&mut self) {
         self.units.sort_unstable_by_key(|u| (u.pos[1], u.pos[0]));
     }
+}
+
+/*
+impl Battle {
+
 
     fn calc_dists(&mut self, pos: Point2<usize>) {
         self.dists.clear();
@@ -210,8 +347,9 @@ impl Battle {
         rounds * (total_health as usize)
     }
 }
+*/
 
-pub fn puzzle1(input: &str) -> usize {
+pub fn puzzle1(input: &str) -> i32 {
     let mut battle = Battle::new(input);
     battle.outcome()
 }
@@ -239,82 +377,82 @@ mod tests {
             27730
         );
 
-        // assert_eq!(
-        //     super::puzzle1(
-        //         r"
-        //             #######
-        //             #G..#E#
-        //             #E#E.E#
-        //             #G.##.#
-        //             #...#E#
-        //             #...E.#
-        //             #######
-        //         "
-        //     ),
-        //     36334
-        // );
+        assert_eq!(
+            super::puzzle1(
+                r"
+                    #######
+                    #G..#E#
+                    #E#E.E#
+                    #G.##.#
+                    #...#E#
+                    #...E.#
+                    #######
+                "
+            ),
+            36334
+        );
 
-        // assert_eq!(
-        //     super::puzzle1(
-        //         r"
-        //             #######
-        //             #E..EG#
-        //             #.#G.E#
-        //             #E.##E#
-        //             #G..#.#
-        //             #..E#.#
-        //             #######
-        //         "
-        //     ),
-        //     39514
-        // );
+        assert_eq!(
+            super::puzzle1(
+                r"
+                    #######
+                    #E..EG#
+                    #.#G.E#
+                    #E.##E#
+                    #G..#.#
+                    #..E#.#
+                    #######
+                "
+            ),
+            39514
+        );
 
-        // assert_eq!(
-        //     super::puzzle1(
-        //         r"
-        //             #######
-        //             #E.G#.#
-        //             #.#G..#
-        //             #G.#.G#
-        //             #G..#.#
-        //             #...E.#
-        //             #######
-        //         "
-        //     ),
-        //     27755
-        // );
+        assert_eq!(
+            super::puzzle1(
+                r"
+                    #######
+                    #E.G#.#
+                    #.#G..#
+                    #G.#.G#
+                    #G..#.#
+                    #...E.#
+                    #######
+                "
+            ),
+            27755
+        );
 
-        // assert_eq!(
-        //     super::puzzle1(
-        //         r"
-        //             #######
-        //             #.E...#
-        //             #.#..G#
-        //             #.###.#
-        //             #E#G#G#
-        //             #...#G#
-        //             #######
-        //         "
-        //     ),
-        //     28944
-        // );
+        assert_eq!(
+            super::puzzle1(
+                r"
+                    #######
+                    #.E...#
+                    #.#..G#
+                    #.###.#
+                    #E#G#G#
+                    #...#G#
+                    #######
+                "
+            ),
+            28944
+        );
 
-        // assert_eq!(
-        //     super::puzzle1(
-        //         r"
-        //             #########
-        //             #G......#
-        //             #.E.#...#
-        //             #..##..G#
-        //             #...##..#
-        //             #...#...#
-        //             #.G...G.#
-        //             #.....G.#
-        //             #########
-        //         "
-        //     ),
-        //     18740
-        // );
+        assert_eq!(
+            super::puzzle1(
+                r"
+                    #########
+                    #G......#
+                    #.E.#...#
+                    #..##..G#
+                    #...##..#
+                    #...#...#
+                    #.G...G.#
+                    #.....G.#
+                    #########
+                "
+            ),
+            18740
+        );
     }
 
     #[test]
