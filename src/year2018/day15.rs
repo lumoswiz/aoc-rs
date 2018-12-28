@@ -1,6 +1,6 @@
 use crate::util::{self, Grid};
 use nalgebra::Point2;
-use std::cmp::Reverse;
+use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::usize;
 
@@ -42,15 +42,15 @@ struct Unit {
 }
 
 struct Pathfinder {
-    seen: HashSet<Point2<usize>>,
+    seen: HashMap<Point2<usize>, (Point2<usize>, usize)>,
     targets: HashSet<Point2<usize>>,
-    pending: VecDeque<(Point2<usize>, Point2<usize>, usize)>,
+    pending: VecDeque<Point2<usize>>,
 }
 
 impl Pathfinder {
     fn new() -> Pathfinder {
         Pathfinder {
-            seen: HashSet::new(),
+            seen: HashMap::new(),
             targets: HashSet::new(),
             pending: VecDeque::new(),
         }
@@ -66,22 +66,41 @@ impl Pathfinder {
         self.targets.clear();
         self.pending.clear();
 
-        self.seen.insert(start);
+        // print!("[{},{}] {{", start[0], start[1]);
+
+        self.seen.insert(start, (start, 0));
         for target in targets {
+            // print!("{},{} ", target[0], target[1]);
             if target == start {
+                // println!("}}");
                 return None;
             }
             self.targets.insert(target);
         }
+
+        // print!("}} ");
+
+        if self.targets.is_empty() {
+            // println!();
+            return None;
+        }
+
         for p in util::adjacent4(start).filter(|p| grid.get(*p) == Some(b'.')) {
-            self.pending.push_back((p, p, 1));
+            self.pending.push_back(p);
+            self.seen.insert(p, (p, 1));
         }
 
         let mut best: Option<(Point2<usize>, Point2<usize>, usize)> = None;
-        while let Some((start, next, dist)) = self.pending.pop_front() {
+        while let Some(next) = self.pending.pop_front() {
+            let (start, dist) = self.seen[&next];
             if best.map(|b| b.2).unwrap_or(dist) < dist {
                 break;
             }
+
+            // print!(
+            //     "({},{}){},{}@{} ",
+            //     start[0], start[1], next[0], next[1], dist
+            // );
 
             if self.targets.contains(&next) {
                 best = match best {
@@ -94,13 +113,25 @@ impl Pathfinder {
                     _ => Some((start, next, dist)),
                 }
             } else {
+                let dist = dist + 1;
                 for p in util::adjacent4(next).filter(|p| grid.get(*p) == Some(b'.')) {
-                    if self.seen.insert(p) {
-                        self.pending.push_back((start, p, dist + 1));
+                    match self.seen.entry(p) {
+                        Entry::Occupied(mut o) => {
+                            let o = o.get_mut();
+                            if (o.1, o.0[1], o.0[0]) > (dist, start[1], start[0]) {
+                                *o = (start, dist);
+                            }
+                        }
+                        Entry::Vacant(e) => {
+                            e.insert((start, dist));
+                            self.pending.push_back(p);
+                        }
                     }
                 }
             }
         }
+
+        // println!();
 
         best.map(|b| b.0)
     }
@@ -141,8 +172,7 @@ impl Battle {
         let mut rounds = 0;
         let mut should_move = true;
 
-        //'battle: while !self.complete() {
-        'battle: for _ in 0..5 {
+        'battle: while !self.complete() {
             let mut updated = false;
 
             let mut i = 0;
@@ -184,22 +214,39 @@ impl Battle {
                     .min_by_key(|(_, u)| (u.health, u.pos[1], u.pos[0]))
                     .map(|(i, _)| i);
                 if let Some(enemy) = enemy {
-                    println!("{} attacks {}", i, enemy);
+                    self.units[enemy].health -= u!().attack;
+                    if self.units[enemy].health <= 0 {
+                        updated = true;
+                        self.grid[self.units[enemy].pos] = b'.';
+                        self.units.remove(enemy);
+                        if enemy < i {
+                            i -= 1
+                        }
+                    }
                 }
 
                 i += 1;
             }
 
-            if updated {}
+            if updated {
+                self.sort_units();
+            }
 
             should_move = updated;
             rounds += 1;
 
             println!("----- {} -----", rounds);
-            println!("{:?}", self.grid);
+            print!("{:?}", self.grid);
+            for u in self.units.iter() {
+                match u.kind {
+                    UnitKind::Elf => println!("E({}) @{},{}", u.health, u.pos[0], u.pos[1]),
+                    UnitKind::Goblin => println!("G({}) @{},{}", u.health, u.pos[0], u.pos[1]),
+                }
+            }
+            println!();
         }
 
-        0
+        rounds * self.units.iter().map(|u| u.health).sum::<i32>()
     }
 
     fn complete(&self) -> bool {
@@ -216,138 +263,6 @@ impl Battle {
         self.units.sort_unstable_by_key(|u| (u.pos[1], u.pos[0]));
     }
 }
-
-/*
-impl Battle {
-
-
-    fn calc_dists(&mut self, pos: Point2<usize>) {
-        self.dists.clear();
-        self.dists_pending.clear();
-
-        self.dists.insert(pos, 0);
-        self.dists_pending.push(pos);
-        while let Some(pos) = self.dists_pending.pop() {
-            let dist = self.dists[&pos] + 1;
-
-            for next_pos in util::adjacent4(pos) {
-                if self.grid.get(next_pos) != Some(b'.') {
-                    continue;
-                }
-
-                let next_dist = self.dists.entry(next_pos).or_insert(usize::MAX);
-                if dist < *next_dist {
-                    *next_dist = dist;
-                    self.dists_pending.push(next_pos);
-                }
-            }
-        }
-    }
-
-    fn dist(&self, pos: Point2<usize>) -> Option<usize> {
-        self.dists.get(&pos).cloned()
-    }
-
-    fn outcome(&mut self) -> usize {
-        // println!("{:?}", self.grid);
-
-        self.sort_units();
-
-        let mut rounds = 0;
-        let mut should_move = true;
-
-        while !self.complete() {
-            rounds += 1;
-
-            let mut moved = false;
-            let mut died = false;
-            for i in 0..self.units.len() {
-                let mut unit = self.units[i].clone();
-                if unit.health <= 0 {
-                    continue;
-                }
-
-                if should_move {
-                    self.calc_dists(unit.pos);
-
-                    let enemies = self.units.iter().filter(|u| u.kind != unit.kind);
-                    let targets = enemies.map(|u| util::adjacent4(u.pos)).flatten();
-                    let closest = targets
-                        .filter(|p| self.dist(*p).is_some())
-                        .min_by_key(|p| (self.dist(*p), p[1], p[0]));
-
-                    if let Some(closest) = closest {
-                        if unit.pos != closest {
-                            moved = true;
-                            self.calc_dists(closest);
-                            let next_pos = util::adjacent4(unit.pos)
-                                .filter(|p| self.dist(*p).is_some())
-                                .min_by_key(|p| (self.dist(*p).unwrap(), p[1], p[0]))
-                                .expect("at least one square to move");
-
-                            self.units[i].pos = next_pos;
-                            self.grid[unit.pos] = b'.';
-                            self.grid[next_pos] = unit.kind.into_raw();
-                            self.poss.remove(&unit.pos);
-                            self.poss.insert(next_pos, i);
-                            unit.pos = next_pos;
-                        }
-                    }
-                }
-
-                let target = util::adjacent4(unit.pos)
-                    .filter_map(|p| self.poss.get(&p))
-                    .cloned()
-                    .filter(|i| self.units[*i].kind != unit.kind)
-                    .filter(|i| self.units[*i].health > 0)
-                    .min_by_key(|i| {
-                        (
-                            self.units[*i].health,
-                            self.units[*i].pos[1],
-                            self.units[*i].pos[0],
-                        )
-                    });
-
-                if let Some(target) = target {
-                    self.units[target].health -= unit.attack;
-                    if self.units[target].health <= 0 {
-                        died = true;
-                        self.grid[self.units[target].pos] = b'.';
-                    }
-                }
-            }
-
-            if died {
-                self.units.retain(|u| u.health > 0);
-            }
-            if died || moved {
-                should_move = true;
-
-                self.sort_units();
-                self.poss.clear();
-                for (i, u) in self.units.iter().enumerate() {
-                    self.poss.insert(u.pos, i);
-                }
-            }
-
-            println!("----- {} -----", rounds);
-            // print!("{:?}", self.grid);
-            // for u in self.units.iter() {
-            //     match u.kind {
-            //         UnitKind::Elf => println!("E({}) @{},{}", u.health, u.pos[0], u.pos[1]),
-            //         UnitKind::Goblin => println!("G({}) @{},{}", u.health, u.pos[0], u.pos[1]),
-            //     }
-            // }
-            // println!();
-        }
-
-        let total_health: i32 = self.units.iter().map(|u| u.health).sum();
-
-        println!("{} {} ", rounds, total_health);
-        rounds * (total_health as usize)
-    }
-}
-*/
 
 pub fn puzzle1(input: &str) -> i32 {
     let mut battle = Battle::new(input);
