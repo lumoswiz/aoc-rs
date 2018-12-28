@@ -73,12 +73,6 @@ impl Grid {
         self.squares.get(i).cloned()
     }
 
-    #[allow(dead_code)]
-    pub fn get_mut<P: Into<Point2<usize>>>(&mut self, pos: P) -> Option<&mut u8> {
-        let i = self.index_of(pos.into());
-        self.squares.get_mut(i)
-    }
-
     pub fn iter<'a>(&'a self) -> impl 'a + Iterator<Item = (Point2<usize>, u8)> {
         let (w, _) = self.size;
         self.squares

@@ -34,6 +34,7 @@ impl UnitKind {
     }
 }
 
+#[derive(Clone)]
 struct Unit {
     kind: UnitKind,
     pos: Point2<usize>,
@@ -66,22 +67,15 @@ impl Pathfinder {
         self.targets.clear();
         self.pending.clear();
 
-        // print!("[{},{}] {{", start[0], start[1]);
-
         self.seen.insert(start, (start, 0));
         for target in targets {
-            // print!("{},{} ", target[0], target[1]);
             if target == start {
-                // println!("}}");
                 return None;
             }
             self.targets.insert(target);
         }
 
-        // print!("}} ");
-
         if self.targets.is_empty() {
-            // println!();
             return None;
         }
 
@@ -96,11 +90,6 @@ impl Pathfinder {
             if best.map(|b| b.2).unwrap_or(dist) < dist {
                 break;
             }
-
-            // print!(
-            //     "({},{}){},{}@{} ",
-            //     start[0], start[1], next[0], next[1], dist
-            // );
 
             if self.targets.contains(&next) {
                 best = match best {
@@ -131,12 +120,11 @@ impl Pathfinder {
             }
         }
 
-        // println!();
-
         best.map(|b| b.0)
     }
 }
 
+#[derive(Clone)]
 struct Battle {
     grid: Grid,
     units: Vec<Unit>,
@@ -164,7 +152,7 @@ impl Battle {
     }
 
     fn outcome(&mut self) -> i32 {
-        println!("{:?}", self.grid);
+        // println!("{:?}", self.grid);
 
         self.sort_units();
 
@@ -225,6 +213,7 @@ impl Battle {
                     }
                 }
 
+                should_move |= updated;
                 i += 1;
             }
 
@@ -235,15 +224,15 @@ impl Battle {
             should_move = updated;
             rounds += 1;
 
-            println!("----- {} -----", rounds);
-            print!("{:?}", self.grid);
-            for u in self.units.iter() {
-                match u.kind {
-                    UnitKind::Elf => println!("E({}) @{},{}", u.health, u.pos[0], u.pos[1]),
-                    UnitKind::Goblin => println!("G({}) @{},{}", u.health, u.pos[0], u.pos[1]),
-                }
-            }
-            println!();
+            // println!("----- {} -----", rounds);
+            // print!("{:?}", self.grid);
+            // for u in self.units.iter() {
+            //     match u.kind {
+            //         UnitKind::Elf => println!("E({}) @{},{}", u.health, u.pos[0], u.pos[1]),
+            //         UnitKind::Goblin => println!("G({}) @{},{}", u.health, u.pos[0], u.pos[1]),
+            //     }
+            // }
+            // println!();
         }
 
         rounds * self.units.iter().map(|u| u.health).sum::<i32>()
@@ -262,6 +251,13 @@ impl Battle {
     fn sort_units(&mut self) {
         self.units.sort_unstable_by_key(|u| (u.pos[1], u.pos[0]));
     }
+
+    fn elves_count(&self) -> usize {
+        self.units
+            .iter()
+            .filter(|u| u.kind == UnitKind::Elf)
+            .count()
+    }
 }
 
 pub fn puzzle1(input: &str) -> i32 {
@@ -269,8 +265,23 @@ pub fn puzzle1(input: &str) -> i32 {
     battle.outcome()
 }
 
-pub fn puzzle2(_input: &str) -> i64 {
-    0
+pub fn puzzle2(input: &str) -> i32 {
+    let battle = Battle::new(input);
+    let initial_elves_count = battle.elves_count();
+
+    for attack in 4.. {
+        let mut battle = battle.clone();
+        for u in battle.units.iter_mut().filter(|u| u.kind == UnitKind::Elf) {
+            u.attack = attack;
+        }
+
+        let outcome = battle.outcome();
+        if battle.elves_count() == initial_elves_count {
+            return outcome;
+        }
+    }
+
+    unreachable!();
 }
 
 #[cfg(test)]
@@ -372,6 +383,81 @@ mod tests {
 
     #[test]
     fn puzzle2() {
-        assert_eq!(super::puzzle2(""), 0);
+        assert_eq!(
+            super::puzzle2(
+                r"
+                    #######
+                    #.G...#
+                    #...EG#
+                    #.#.#G#
+                    #..G#E#
+                    #.....#
+                    #######
+                "
+            ),
+            4988
+        );
+
+        assert_eq!(
+            super::puzzle2(
+                r"
+                    #######
+                    #E..EG#
+                    #.#G.E#
+                    #E.##E#
+                    #G..#.#
+                    #..E#.#
+                    #######
+                "
+            ),
+            31284
+        );
+
+        assert_eq!(
+            super::puzzle2(
+                r"
+                    #######
+                    #E.G#.#
+                    #.#G..#
+                    #G.#.G#
+                    #G..#.#
+                    #...E.#
+                    #######
+                "
+            ),
+            3478
+        );
+
+        assert_eq!(
+            super::puzzle2(
+                r"
+                    #######
+                    #.E...#
+                    #.#..G#
+                    #.###.#
+                    #E#G#G#
+                    #...#G#
+                    #######
+                "
+            ),
+            6474
+        );
+
+        assert_eq!(
+            super::puzzle2(
+                r"
+                    #########
+                    #G......#
+                    #.E.#...#
+                    #..##..G#
+                    #...##..#
+                    #...#...#
+                    #.G...G.#
+                    #.....G.#
+                    #########
+                "
+            ),
+            1140
+        );
     }
 }
