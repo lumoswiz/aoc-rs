@@ -77,14 +77,18 @@ where
 }
 
 macro_rules! advent {
-    ($year:tt {
-        $($day:tt,)*
-    }) => {
-        mod $year {
-            $(
-                pub mod $day;
-            )*
-        }
+    ($(
+        $year:tt {
+            $($day:tt,)*
+        },
+    )*) => {
+        $(
+            mod $year {
+                $(
+                    pub mod $day;
+                )*
+            }
+        )*
 
         fn solve(year: i32, day: i32, input: &str) -> (String, String) {
             let year_str = format!("year{}", year);
@@ -92,10 +96,12 @@ macro_rules! advent {
 
             match (year_str.as_str(), day_str.as_str()) {
                 $(
-                    (stringify!($year), stringify!($day)) => (
-                        $year::$day::puzzle1(input).to_string(),
-                        $year::$day::puzzle2(input).to_string(),
-                    ),
+                    $(
+                        (stringify!($year), stringify!($day)) => (
+                            $year::$day::puzzle1(input).to_string(),
+                            $year::$day::puzzle2(input).to_string(),
+                        ),
+                    )*
                 )*
                 _ => panic!("failed to get input for year {} day {}", year, day),
             }
@@ -103,29 +109,36 @@ macro_rules! advent {
     };
 }
 
-advent!(year2018 {
-    day01,
-    day02,
-    day03,
-    day04,
-    day05,
-    day06,
-    day07,
-    day08,
-    day09,
-    day10,
-    day11,
-    day12,
-    day13,
-    day14,
-    day15,
-    day16,
-    day17,
-    day18,
-    day19,
-    day20,
-    day22,
-    day23,
-    day24,
-    day25,
-});
+advent!(
+    year2015 {
+        day22,
+        day24,
+        day25,
+    },
+    year2018 {
+        day01,
+        // day02,
+        // day03,
+        // day04,
+        // day05,
+        // day06,
+        // day07,
+        // day08,
+        // day09,
+        // day10,
+        // day11,
+        // day12,
+        // day13,
+        // day14,
+        // day15,
+        // day16,
+        // day17,
+        // day18,
+        // day19,
+        // day20,
+        // day22,
+        // day23,
+        // day24,
+        // day25,
+    },
+);

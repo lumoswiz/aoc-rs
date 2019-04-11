@@ -1,5 +1,3 @@
-use crate::util;
-
 pub fn puzzle1(input: &str) -> i64 {
     0
 }
