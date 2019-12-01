@@ -93,15 +93,14 @@ impl Grid {
 
 impl<P: Into<Point2<usize>>> Index<P> for Grid {
     type Output = u8;
-
-    fn index<'a>(&'a self, index: P) -> &'a Self::Output {
+    fn index(&self, index: P) -> &Self::Output {
         let i = self.index_of(index.into());
         self.squares.index(i)
     }
 }
 
 impl<P: Into<Point2<usize>>> IndexMut<P> for Grid {
-    fn index_mut<'a>(&'a mut self, index: P) -> &'a mut Self::Output {
+    fn index_mut(&mut self, index: P) -> &mut Self::Output {
         let i = self.index_of(index.into());
         self.squares.index_mut(i)
     }
@@ -114,32 +113,36 @@ impl Debug for Grid {
             let slice = &self.squares[j * w..(j + 1) * w];
             writeln!(f, "{}", unsafe { str::from_utf8_unchecked(slice) })?;
         }
-
         Ok(())
     }
 }
 
 pub fn adjacent4(pos: Point2<usize>) -> impl Iterator<Item = Point2<usize>> {
-    static ADJACENT: [(isize, isize); 4] = [(0, 1), (-1, 0), (1, 0), (0, -1)];
-    ADJACENT
-        .iter()
-        .map(move |(dx, dy)| ((pos[0] as isize) + dx, (pos[1] as isize) + dy))
-        .map(|(x, y)| Point2::new(x as usize, y as usize))
+    adjacent_helper(pos, &[(0, 1), (-1, 0), (1, 0), (0, -1)])
 }
 
 pub fn adjacent8(pos: Point2<usize>) -> impl Iterator<Item = Point2<usize>> {
-    static ADJACENT: [(isize, isize); 8] = [
-        (0, 1),
-        (1, 1),
-        (1, 0),
-        (1, -1),
-        (0, -1),
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-    ];
-    ADJACENT
+    adjacent_helper(
+        pos,
+        &[
+            (0, 1),
+            (1, 1),
+            (1, 0),
+            (1, -1),
+            (0, -1),
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+        ],
+    )
+}
+
+pub fn adjacent_helper(
+    pos: Point2<usize>,
+    neighbours: &[(isize, isize)],
+) -> impl Iterator<Item = Point2<usize>> + '_ {
+    neighbours
         .iter()
-        .map(move |(dx, dy)| ((pos[0] as isize) + dx, (pos[1] as isize) + dy))
+        .map(move |(dx, dy)| ((pos[0] as isize) + *dx, (pos[1] as isize) + *dy))
         .map(|(x, y)| Point2::new(x as usize, y as usize))
 }
