@@ -52,7 +52,7 @@ pub fn puzzle2(input: &str) -> usize {
         &s[start..]
     }
 
-    let scoreboard = puzzle(0x400000, |s| slice_end(&s, input.len()).contains(input));
+    let scoreboard = puzzle(0x0040_0000, |s| slice_end(&s, input.len()).contains(input));
     scoreboard.rfind(input).unwrap()
 }
 

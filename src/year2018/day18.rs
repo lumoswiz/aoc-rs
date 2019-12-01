@@ -86,7 +86,7 @@ pub fn puzzle1(input: &str) -> usize {
 }
 
 pub fn puzzle2(input: &str) -> usize {
-    const GENERATIONS: usize = 1000000000;
+    const GENERATIONS: usize = 1_000_000_000;
 
     let mut field = Field::new(input);
     let mut values = HashMap::new();

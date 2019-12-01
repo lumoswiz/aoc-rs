@@ -281,10 +281,10 @@ pub fn puzzle2(input: &str) -> u32 {
         }
     }
 
-    return (1..)
+    (1..)
         .filter_map(|boost| immune_system_win(&immune_system, &infection, boost))
         .nth(0)
-        .expect("immune system never wins");
+        .expect("immune system never wins")
 }
 
 #[cfg(test)]
