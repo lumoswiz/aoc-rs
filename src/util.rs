@@ -8,6 +8,10 @@ pub fn split<'a>(input: &'a str) -> impl 'a + Iterator<Item = &'a str> {
     input.trim().split('\n').map(|s| s.trim())
 }
 
+pub fn parse_csv(input: &str) -> Vec<i64> {
+    input.split(',').map(|s| i64::from_str(s.trim()).unwrap()).collect()
+}
+
 pub fn parse<'a, T>(input: &'a str) -> impl 'a + Iterator<Item = T>
 where
     T: 'a + FromStr,

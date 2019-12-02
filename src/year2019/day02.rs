@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use crate::util::parse_csv;
 
 pub fn solve(mut numbers: Vec<i64>) -> i64 {
     let mut i: usize = 0;
@@ -18,11 +19,11 @@ pub fn solve(mut numbers: Vec<i64>) -> i64 {
 }
 
 pub fn test_solve(input: &str) -> i64 {
-    let mut numbers: Vec<i64> = input.split(',').map(|s| i64::from_str(s.trim()).unwrap()).collect();
+    let mut numbers: Vec<i64> = parse_csv(input);
     solve(numbers)
 }
 pub fn puzzle1(input: &str) -> i64 {
-    let mut numbers: Vec<i64> = input.split(',').map(|s| i64::from_str(s.trim()).unwrap()).collect();
+    let mut numbers: Vec<i64> = parse_csv(input);
     // Random extra condition in last paragraph
     numbers[1] = 12;
     numbers[2] = 2;
@@ -30,7 +31,7 @@ pub fn puzzle1(input: &str) -> i64 {
 }
 
 pub fn puzzle2(input: &str) -> i64 {
-    let mut numbers: Vec<i64> = input.split(',').map(|s| i64::from_str(s.trim()).unwrap()).collect();
+    let mut numbers: Vec<i64> = parse_csv(input);
     let mut res = -1;
     for noun in 0..99 {
         for verb in 0..99 {
