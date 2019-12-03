@@ -19,7 +19,7 @@ pub fn solve(mut numbers: Vec<i64>) -> i64 {
 }
 
 pub fn test_solve(input: &str) -> i64 {
-    let mut numbers: Vec<i64> = parse_csv(input);
+    let numbers: Vec<i64> = parse_csv(input);
     solve(numbers)
 }
 pub fn puzzle1(input: &str) -> i64 {
