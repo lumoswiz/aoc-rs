@@ -1,3 +1,4 @@
+
 use nalgebra::Point2;
 use std::fmt::{self, Debug, Formatter};
 use std::ops::{Index, IndexMut};
@@ -33,7 +34,7 @@ pub struct Grid {
     size: (usize, usize),
     squares: Vec<u8>,
 }
-
+#[allow(dead_code)]
 impl Grid {
     pub fn new(w: usize, h: usize) -> Grid {
         let size = (w, h);
@@ -120,11 +121,11 @@ impl Debug for Grid {
         Ok(())
     }
 }
-
+#[allow(dead_code)]
 pub fn adjacent4(pos: Point2<usize>) -> impl Iterator<Item = Point2<usize>> {
     adjacent_helper(pos, &[(0, 1), (-1, 0), (1, 0), (0, -1)])
 }
-
+#[allow(dead_code)]
 pub fn adjacent8(pos: Point2<usize>) -> impl Iterator<Item = Point2<usize>> {
     adjacent_helper(
         pos,
@@ -140,7 +141,7 @@ pub fn adjacent8(pos: Point2<usize>) -> impl Iterator<Item = Point2<usize>> {
         ],
     )
 }
-
+#[allow(dead_code)]
 pub fn adjacent_helper(
     pos: Point2<usize>,
     neighbours: &[(isize, isize)],
