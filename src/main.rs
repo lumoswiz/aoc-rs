@@ -110,7 +110,7 @@ macro_rules! advent {
 }
 
 advent!(
-    year2019 { day01, day02, day03, day04, },
+    year2019 { day01, day02, day03, day04, day05, },
     year2018 {
         day01,
 //        day02,
