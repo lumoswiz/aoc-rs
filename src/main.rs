@@ -54,7 +54,7 @@ fn main() {
         let time = Instant::now() - start;
 
         if show_time {
-            let time = time.as_secs() as f64 + time.subsec_nanos() as f64 * 1e-9;
+            let time = time.as_secs() as f64 + f64::from(time.subsec_nanos()) * 1e-9;
             println!("Day {} ({:.2}s)", day, time);
         } else {
             println!("Day {}", day);

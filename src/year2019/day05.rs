@@ -28,7 +28,7 @@ pub struct Command {
 }
 
 pub fn parse_op(op_data: &str) -> Command {
-    let mut op_type: u8 = 0;
+    let op_type: u8;
     let op = match op_data.chars().last().unwrap() {
         '1' => {
             op_type = 3u8;
