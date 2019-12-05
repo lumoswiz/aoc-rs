@@ -1,5 +1,6 @@
 use std::string::ToString;
 use crate::util::parse_csv;
+use std::iter::Iterator;
 
 #[derive(Debug, PartialEq)]
 pub enum Mode {

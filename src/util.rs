@@ -1,4 +1,3 @@
-
 use nalgebra::Point2;
 use std::fmt::{self, Debug, Formatter};
 use std::ops::{Index, IndexMut};
@@ -10,7 +9,10 @@ pub fn split<'a>(input: &'a str) -> impl 'a + Iterator<Item = &'a str> {
 }
 
 pub fn parse_csv(input: &str) -> Vec<i64> {
-    input.split(',').map(|s| i64::from_str(s.trim()).unwrap()).collect()
+    input
+        .split(',')
+        .map(|s| i64::from_str(s.trim()).unwrap())
+        .collect()
 }
 
 pub fn parse<'a, T>(input: &'a str) -> impl 'a + Iterator<Item = T>
