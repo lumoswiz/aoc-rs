@@ -1,5 +1,5 @@
-use std::str::FromStr;
 use crate::util::parse_csv;
+use std::str::FromStr;
 
 pub fn solve(mut numbers: Vec<i64>) -> i64 {
     let mut i: usize = 0;
@@ -11,13 +11,14 @@ pub fn solve(mut numbers: Vec<i64>) -> i64 {
         numbers[z] = match op {
             1 => numbers[x] + numbers[y],
             2 => numbers[x] * numbers[y],
-            _ => panic!("Something went wrong with op parsing!")
+            _ => panic!("Something went wrong with op parsing!"),
         };
         i += 4;
     }
     numbers[0]
 }
 
+#[allow(dead_code)]
 pub fn test_solve(input: &str) -> i64 {
     let numbers: Vec<i64> = parse_csv(input);
     solve(numbers)
