@@ -1,17 +1,27 @@
 use crate::util;
+use itertools::Itertools;
 
-pub fn solve(mut numbers: Vec<i64>) -> i64 {
-    println!("{:?}", numbers);
+pub fn solve(numbers: Vec<i32>, size: u8) -> i32 {
+    for combo in numbers.iter().combinations(2) {
+        if combo.iter().sum() == 2020 {
+            return combo.iter().product();
+        }
+    }
     0
 }
 
-pub fn puzzle1(input: &str) -> i64 {
-    let input = util::split(input);
-    solve(input)
+pub fn puzzle1(input: &str) -> i32 {
+    let parsed_input = util::split(input)
+        .map(|x| x.parse::<i32>().unwrap())
+        .collect();
+    solve(parsed_input, 2)
 }
 
-pub fn puzzle2(input: &str) -> i64 {
-    0
+pub fn puzzle2(_input: &str) -> i32 {
+    let parsed_input = util::split(input)
+        .map(|x| x.parse::<i32>().unwrap())
+        .collect();
+    solve(parsed_input, 3)
 }
 
 #[cfg(test)]
@@ -29,7 +39,7 @@ mod tests {
                         1456
                 "
             ),
-            0
+            514579
         );
     }
 }

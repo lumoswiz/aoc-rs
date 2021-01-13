@@ -44,17 +44,18 @@ pub fn puzzle2(input: &str) -> i64 {
 
 #[cfg(test)]
 mod tests {
+    use crate::util::parse_csv;
     pub fn test_solve(input: &str) -> i64 {
         let numbers: Vec<i64> = parse_csv(input);
-        solve(numbers)
+        super::solve(numbers)
     }
 
     #[test]
     fn puzzle1() {
-        assert_eq!(super::test_solve("1,9,10,3,2,3,11,0,99,30,40,50"), 3500);
-        assert_eq!(super::test_solve("1,0,0,0,99"), 2);
-        assert_eq!(super::test_solve("2,3,0,3,99"), 2);
-        assert_eq!(super::test_solve("2,4,4,5,99,0"), 2);
-        assert_eq!(super::test_solve("1,1,1,4,99,5,6,0,99"), 30);
+        assert_eq!(test_solve("1,9,10,3,2,3,11,0,99,30,40,50"), 3500);
+        assert_eq!(test_solve("1,0,0,0,99"), 2);
+        assert_eq!(test_solve("2,3,0,3,99"), 2);
+        assert_eq!(test_solve("2,4,4,5,99,0"), 2);
+        assert_eq!(test_solve("1,1,1,4,99,5,6,0,99"), 30);
     }
 }
