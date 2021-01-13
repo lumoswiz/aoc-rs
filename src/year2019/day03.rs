@@ -29,7 +29,7 @@ impl Point2 {
 }
 
 impl Segment2 {
-    fn from(p1: Point2, p2: Point2) -> Self {
+    fn new(p1: Point2, p2: Point2) -> Self {
         Segment2 {
             left: p1,
             right: p2,
@@ -114,7 +114,7 @@ pub fn construct_points(travel_logs: Vec<Vec<(char, i64)>>) -> Vec<Vec<Point2>> 
             points[i].push(Point2 { x: pos.x, y: pos.y });
         }
     }
-    return points;
+    points
 }
 
 pub fn puzzle1(input: &str) -> i64 {
@@ -122,14 +122,11 @@ pub fn puzzle1(input: &str) -> i64 {
 
     let mut intersection = HashSet::new();
     for i in 1..points[0].len() {
-        let pair = Segment2::from(points[0][i - 1], points[0][i]);
+        let pair = Segment2::new(points[0][i - 1], points[0][i]);
         for j in 1..points[1].len() {
-            let other_pair = Segment2::from(points[1][j - 1], points[1][j]);
-            match pair.crosses(other_pair) {
-                Some(crossing) => {
-                    intersection.insert(crossing);
-                }
-                None => (), //println!("Segments do not overlap")
+            let other_pair = Segment2::new(points[1][j - 1], points[1][j]);
+            if let Some(crossing) = pair.crosses(other_pair) {
+                intersection.insert(crossing);
             }
         }
     }
@@ -144,20 +141,17 @@ pub fn puzzle2(input: &str) -> i64 {
     let mut first_steps = points[0][0].norm();
     let mut second_steps;
     for i in 1..points[0].len() {
-        let first_segment = Segment2::from(points[0][i - 1], points[0][i]);
+        let first_segment = Segment2::new(points[0][i - 1], points[0][i]);
         second_steps = points[1][0].norm();
         for j in 1..points[1].len() {
-            let other_segment = Segment2::from(points[1][j - 1], points[1][j]);
-            match first_segment.crosses(other_segment) {
-                Some(crossing) => {
-                    crossing_steps.insert(
-                        first_steps
-                            + second_steps
-                            + crossing.manhattan(first_segment.left)
-                            + crossing.manhattan(other_segment.left),
-                    );
-                }
-                None => (), //println!("Segments do not overlap")
+            let other_segment = Segment2::new(points[1][j - 1], points[1][j]);
+            if let Some(crossing) = first_segment.crosses(other_segment) {
+                crossing_steps.insert(
+                    first_steps
+                        + second_steps
+                        + crossing.manhattan(first_segment.left)
+                        + crossing.manhattan(other_segment.left),
+                );
             }
             second_steps += other_segment.left.manhattan(other_segment.right);
         }

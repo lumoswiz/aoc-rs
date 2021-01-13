@@ -18,11 +18,6 @@ pub fn solve(mut numbers: Vec<i64>) -> i64 {
     numbers[0]
 }
 
-#[allow(dead_code)]
-pub fn test_solve(input: &str) -> i64 {
-    let numbers: Vec<i64> = parse_csv(input);
-    solve(numbers)
-}
 pub fn puzzle1(input: &str) -> i64 {
     let mut numbers: Vec<i64> = parse_csv(input);
     // Random extra condition in last paragraph
@@ -36,9 +31,9 @@ pub fn puzzle2(input: &str) -> i64 {
     let mut res = -1;
     for noun in 0..99 {
         for verb in 0..99 {
-            numbers[1] = noun as i64;
-            numbers[2] = verb as i64;
-            if solve(numbers.clone()) == 19690720 {
+            numbers[1] = i64::from(noun);
+            numbers[2] = i64::from(verb);
+            if solve(numbers.clone()) == 19_690_720 {
                 let string_result = format!("{}{}", noun, verb);
                 res = i64::from_str(&string_result).expect("Error parsing");
             }
@@ -49,6 +44,11 @@ pub fn puzzle2(input: &str) -> i64 {
 
 #[cfg(test)]
 mod tests {
+    pub fn test_solve(input: &str) -> i64 {
+        let numbers: Vec<i64> = parse_csv(input);
+        solve(numbers)
+    }
+
     #[test]
     fn puzzle1() {
         assert_eq!(super::test_solve("1,9,10,3,2,3,11,0,99,30,40,50"), 3500);
