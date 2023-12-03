@@ -39,7 +39,7 @@ impl Gadget {
 
 pub fn puzzle1(input: &str) -> i64 {
     let mut gadget = Gadget::new();
-    for cmd in input.clone().trim().split('\n').map(Operation::from) {
+    for cmd in input.trim().split('\n').map(Operation::from) {
         gadget.apply_op(cmd);
     }
     // println!("{:?}", gadget.signals);
