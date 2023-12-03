@@ -4,7 +4,27 @@ use std::ops::{Index, IndexMut};
 use std::str::{self, FromStr};
 use std::usize;
 
-pub fn split<'a>(input: &'a str) -> impl 'a + Iterator<Item = &'a str> {
+#[derive(Debug, Eq, Hash, PartialEq)]
+pub enum Direction {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+impl Direction {
+    pub fn from_char(ch: char) -> Self {
+        match ch {
+            'D' => Direction::Down,
+            'R' => Direction::Right,
+            'L' => Direction::Left,
+            'U' => Direction::Up,
+            v => panic!("Unexpected direction character! {}", v),
+        }
+    }
+}
+
+pub fn split(input: &str) -> impl '_ + Iterator<Item = &'_ str> {
     input.trim().split('\n').map(|s| s.trim())
 }
 
@@ -80,7 +100,7 @@ impl Grid {
         self.squares.get(i).cloned()
     }
 
-    pub fn iter<'a>(&'a self) -> impl 'a + Iterator<Item = (Point2<usize>, u8)> {
+    pub fn iter(&self) -> impl '_ + Iterator<Item = (Point2<usize>, u8)> {
         let (w, _) = self.size;
         self.squares
             .iter()
@@ -89,7 +109,7 @@ impl Grid {
             .map(move |(i, v)| ([i % w, i / w].into(), v))
     }
 
-    pub fn iter_mut<'a>(&'a mut self) -> impl 'a + Iterator<Item = (Point2<usize>, &'a mut u8)> {
+    pub fn iter_mut(&mut self) -> impl '_ + Iterator<Item = (Point2<usize>, &'_ mut u8)> {
         let (w, _) = self.size;
         self.squares
             .iter_mut()

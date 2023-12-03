@@ -17,7 +17,7 @@ fn main() {
                 .short("y")
                 .long("year")
                 .value_name("YEAR")
-                .default_value("2020")
+                .default_value("2022")
                 .takes_value(true)
                 .validator(validate::<i32>),
         )
@@ -110,6 +110,18 @@ macro_rules! advent {
 }
 
 advent!(
+    year2022 {
+        day01,
+        day02,
+        day03,
+        day04,
+        day05,
+        day06,
+        day07,
+        day08,
+        day09,
+        day10,
+    },
     year2020 {
         day01,
         //        day02,
