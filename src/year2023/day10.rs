@@ -198,7 +198,7 @@ LJ.LJ";
         assert_eq!(super::puzzle1(SAMPLE_INPUT), 8);
     }
 
-    const SAMPLE_LOOP: &str = "
+    const _SAMPLE_LOOP: &str = "
 ...........
 .S-------7.
 .|F-----7|.

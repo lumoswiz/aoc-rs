@@ -103,10 +103,10 @@ fn multiple_damaged_groups(records: &[Record], nums: &[u8]) -> usize {
         .filter(|&pos| {
             // Positions around must not be damaged or the window would be too large!
             pos.checked_sub(1)
-                .map_or(true, |i| records[i] != Record::Damaged)
+                .is_none_or(|i| records[i] != Record::Damaged)
                 && (pos + num < records.len())
                     .then_some(pos + num)
-                    .map_or(true, |i| records[i] != Record::Damaged)
+                    .is_none_or(|i| records[i] != Record::Damaged)
         })
         .map(|pos| {
             let c0 = (num_idx != 0).then(|| {

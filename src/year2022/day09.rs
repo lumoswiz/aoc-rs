@@ -116,8 +116,7 @@ impl ConfigChain {
             .data
             .clone()
             .into_iter()
-            .enumerate()
-            .map(|(_index, mut config)| {
+            .map(|mut config| {
                 // println!(
                 //     "Index {}: Applying Move(s) {:?} on Config {:?}",
                 //     index, next_moves, config

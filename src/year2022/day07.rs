@@ -86,7 +86,7 @@ impl Entry {
         match cd_line {
             ".." => self.get_parent().expect("should exist!"),
             &_ => {
-                if !self.child_names().contains(&cd_line.to_string()) {
+                if !self.child_names().contains(cd_line) {
                     let new_dir = Entry::new(cd_line);
                     self.add_child(new_dir.clone());
                     new_dir

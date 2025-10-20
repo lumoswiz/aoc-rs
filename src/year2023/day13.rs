@@ -1,4 +1,4 @@
-fn find_reflection(pattern: &Vec<Vec<char>>) -> u32 {
+fn find_reflection(pattern: &[Vec<char>]) -> u32 {
     let num_rows = pattern.len();
     let num_cols = pattern[0].len();
     for split_col in 1..num_cols {
@@ -42,7 +42,7 @@ fn count_diff(s1: &[char], s2: &[char]) -> u32 {
     count
 }
 
-fn find_reflection2(pattern: &Vec<Vec<char>>) -> u32 {
+fn find_reflection2(pattern: &[Vec<char>]) -> u32 {
     let num_rows = pattern.len();
     let num_cols = pattern[0].len();
     for split_col in 1..num_cols {

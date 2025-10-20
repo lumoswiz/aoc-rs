@@ -65,7 +65,7 @@ pub fn puzzle2(input: &str) -> u32 {
         let input: Vec<&str> = row.trim().split(':').collect();
         let id: usize = input[0]
             .split(' ')
-            .last()
+            .next_back()
             .expect("element exists")
             .parse()
             .expect("is number");

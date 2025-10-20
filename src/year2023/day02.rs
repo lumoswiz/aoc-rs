@@ -39,7 +39,7 @@ impl Game {
         let input: Vec<&str> = input.trim().split(':').collect();
         let round = input[0]
             .split(' ')
-            .last()
+            .next_back()
             .expect("always something")
             .parse::<u32>()
             .expect("game number");

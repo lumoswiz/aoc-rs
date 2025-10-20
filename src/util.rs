@@ -2,7 +2,6 @@ use nalgebra::Point2;
 use std::fmt::{self, Debug, Formatter};
 use std::ops::{Index, IndexMut};
 use std::str::{self, FromStr};
-use std::usize;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Point {

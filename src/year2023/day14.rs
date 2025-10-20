@@ -21,18 +21,15 @@ impl Platform {
             Direction::North => {
                 for i in 0..self.grid.len() {
                     for j in 0..self.grid[i].len() {
-                        match self.grid[i][j] == 'O' {
-                            true => {
-                                let mut k = i;
+                        if self.grid[i][j] == 'O' {
+                            let mut k = i;
 
-                                while k > 0 && self.grid[k - 1][j] == '.' {
-                                    k -= 1;
-                                }
-
-                                self.grid[i][j] = '.';
-                                self.grid[k][j] = 'O';
+                            while k > 0 && self.grid[k - 1][j] == '.' {
+                                k -= 1;
                             }
-                            false => (),
+
+                            self.grid[i][j] = '.';
+                            self.grid[k][j] = 'O';
                         }
                     }
                 }
@@ -40,8 +37,7 @@ impl Platform {
             Direction::West => {
                 for i in 0..self.grid.len() {
                     for j in 0..self.grid[i].len() {
-                        match self.grid[i][j] == 'O' {
-                            true => {
+                        if self.grid[i][j] == 'O' {
                                 let mut k = j;
 
                                 while k > 0 && self.grid[i][k - 1] == '.' {
@@ -50,8 +46,6 @@ impl Platform {
 
                                 self.grid[i][j] = '.';
                                 self.grid[i][k] = 'O';
-                            }
-                            false => (),
                         }
                     }
                 }
@@ -59,8 +53,7 @@ impl Platform {
             Direction::South => {
                 for i in (0..self.grid.len()).rev() {
                     for j in 0..self.grid[i].len() {
-                        match self.grid[i][j] == 'O' {
-                            true => {
+                        if self.grid[i][j] == 'O' {
                                 let mut k = i;
 
                                 while k < self.grid.len() - 1 && self.grid[k + 1][j] == '.' {
@@ -69,8 +62,6 @@ impl Platform {
 
                                 self.grid[i][j] = '.';
                                 self.grid[k][j] = 'O';
-                            }
-                            false => (),
                         }
                     }
                 }
@@ -78,8 +69,7 @@ impl Platform {
             Direction::East => {
                 for i in 0..self.grid.len() {
                     for j in (0..self.grid[i].len()).rev() {
-                        match self.grid[i][j] == 'O' {
-                            true => {
+                        if self.grid[i][j] == 'O' {
                                 let mut k = j;
 
                                 while k < self.grid[0].len() - 1 && self.grid[i][k + 1] == '.' {
@@ -88,8 +78,6 @@ impl Platform {
 
                                 self.grid[i][j] = '.';
                                 self.grid[i][k] = 'O';
-                            }
-                            false => (),
                         }
                     }
                 }

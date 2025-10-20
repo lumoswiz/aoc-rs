@@ -38,7 +38,7 @@ fn parse_map(input: &str) -> Vec<Vec<(Tile, u8)>> {
         .collect()
 }
 
-fn energized_count(map: &mut Vec<Vec<(Tile, u8)>>, start: &(BeamDir, usize, usize)) -> u16 {
+fn energized_count(map: &mut [Vec<(Tile, u8)>], start: &(BeamDir, usize, usize)) -> u16 {
     let mut beams = vec![*start];
     let mut new_directions = Vec::with_capacity(2);
     let mut energized = 0;
