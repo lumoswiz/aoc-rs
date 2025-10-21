@@ -1,5 +1,4 @@
 mod client;
-mod util;
 
 use crate::client::Client;
 use clap::{Arg, Command};
@@ -92,75 +91,9 @@ macro_rules! advent {
     };
 }
 
-advent!(
-    year2023 {
-        day01,
-        day02,
-        day03,
-        day04,
-        day05,
-        day06,
-        day07,
-        day08,
-        day09,
-        day10,
-        day11,
-        day12,
-        day13,
-        day14,
-        day15,
-        day16,
-        // day17,
-        // day18,
-        // day19,
-    },
-    year2022 {
-        day01,
-        day02,
-        day03,
-        day04,
-        day05,
-        day06,
-        day07,
-        day08,
-        day09,
-        day10,
-    },
-    year2020 {
-        day01,
-        //day02,
-    },
-    year2019 {
-        day01,
-        day02,
-        day03,
-        day04,
-        day05,
-    },
-    year2018 {
-        day01,
-        //        day02,
-    },
-    year2015 {
-        day01,
-        day02,
-        day03,
-        day04,
-        day09,
-        day10,
-        day11,
-        day12,
-        day13,
-        day14,
-        day15,
-        day16,
-        day17,
-        day18,
-        day19,
-        //        day20,
-        //        day22,
-        //        day23,
-        //        day24,
-        //        day25,
-    },
-);
+advent!(year2016 {
+    day01,
+    // day02,
+    // day03,
+    // day04,
+},);
