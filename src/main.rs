@@ -1,7 +1,7 @@
 mod client;
 
 use crate::client::Client;
-use clap::{Arg, Command};
+use clap::{Arg, ArgAction, Command};
 use std::time::Instant;
 
 fn main() {
@@ -17,7 +17,11 @@ fn main() {
                 .default_value("2023")
                 .value_parser(clap::value_parser!(i32)), // Replace validator()
         )
-        .arg(Arg::new("show-time").long("show-time"))
+        .arg(
+            Arg::new("show-time")
+                .long("show-time")
+                .action(ArgAction::SetTrue),
+        )
         .arg(
             Arg::new("days")
                 .short('d') // Short flags now use single quotes
