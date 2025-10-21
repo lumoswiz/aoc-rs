@@ -1,20 +1,13 @@
-pub fn parse_input(input: &str) {
-    println!("Got input of length {}", input.len());
-}
-
-pub fn puzzle1(input: &str) -> u32 {
-    parse_input(input);
+pub fn puzzle1(_input: &str) -> u32 {
     0
 }
 
-pub fn puzzle2(input: &str) -> u32 {
-    parse_input(input);
+pub fn puzzle2(_input: &str) -> u32 {
     0
 }
 
 #[cfg(test)]
 mod tests {
-
     const SAMPLE_INPUT: &str = "";
 
     #[test]
